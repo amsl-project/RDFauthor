@@ -114,8 +114,9 @@ var __config = {
             'hook' : {
                 type: 'ObjectProperty',
                 name: 'property',
-                values: ['http://xmlns.com/foaf/0.1/mbox', 
-                         'http://rdfs.org/sioc/ns#email', 
+                values: ['http://xmlns.com/foaf/0.1/mbox',
+                         'http://rdfs.org/sioc/ns#email',
+                         'http://www.w3.org/2006/vcard/ns#hasEmail',
                          'http://usefulinc.com/ns/doap#mailing-list']
             }
         },
@@ -130,6 +131,7 @@ var __config = {
                          'http://purl.org/net/ldap#mobile',
                          'http://purl.org/net/ldap#homePhone',
                          'http://purl.org/net/ldap#telephoneNumber',
+                         'http://www.w3.org/2006/vcard/ns#hasTelephone',
                          'http://purl.org/net/ldap#fax']
             }
         },
@@ -150,8 +152,7 @@ var __config = {
             'hook' : [
             {
                 name: 'property',
-                values: ['http://www.w3.org/2000/01/rdf-schema#comment',
-                         'http://purl.org/dc/terms/description',
+                values: ['http://purl.org/dc/terms/description',
                          'http://purl.org/dc/elements/1.1/description',
                          'http://www.w3.org/2004/02/skos/core#note',
                          'http://www.w3.org/2004/02/skos/core#editorialNote',

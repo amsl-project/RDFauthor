@@ -4,7 +4,7 @@
  * Author: Norman Heino <norman.heino@gmail.com>
  */
 
-var MAX_TITLE_LENGTH = 50;
+var MAX_TITLE_LENGTH = 150;
 
 RDFauthor.registerWidget({
     init: function () {
@@ -185,7 +185,7 @@ RDFauthor.registerWidget({
                     try {
                         var newStatement = this.statement.copyWithObject({
                             value: '<' + this.value() + '>',
-                            // value: ( self.statement._object.type == 'uri' ) ? '<' + this.value() + '>' 
+                            // value: ( self.statement._object.type == 'uri' ) ? '<' + this.value() + '>'
                                                                             // : '_:' + this.value(),
                             // type: ( self.statement._object.type == 'bnode' ) ? 'bnode' : 'uri'
                             type: 'uri'
@@ -221,7 +221,7 @@ RDFauthor.registerWidget({
         }
         return null;
     },
-    
+
     getLabel: function (subjectUri, responseCallback) {
         var self = this;
         var label = subjectUri;
@@ -238,7 +238,6 @@ RDFauthor.registerWidget({
                 unionPattern += " UNION ";
             }
         }
-
 
         //build query
         var query = 'SELECT ?label WHERE { ' + unionPattern + ' . } LIMIT 1';
@@ -336,7 +335,7 @@ RDFauthor.registerWidget({
                         && REGEX(?literal, "^.{1,' + MAX_TITLE_LENGTH + '}$"))\
                 }\
                 LIMIT ' + this._options.maxResults;
-            
+
             // TODO: if domain is bound, check if current subject is an instance of it
             RDFauthor.queryGraph(this.statement.graphURI(), query, {
                 callbackSuccess: function (data) {
@@ -609,7 +608,7 @@ RDFauthor.registerWidget({
             self.element().parent().parent().parent().parent().parent().parent().find('input').each(function() {
               self.element().data('objects').push($(this).attr('title'));
             });
-            
+
             //set human-readable label for uri
             if (self.isURI(self.statement.objectValue()) && self._options.labels) {
                 self.getLabel(self.statement.objectValue(), function(label, hasLabel) {
