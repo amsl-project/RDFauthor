@@ -1124,6 +1124,9 @@ RDFauthor = (function($) {
             var updateURI = RDFauthor.updateURIForGraph(g);
             var databank  = RDFauthor.databankForGraph(g);
             var original  = _extractedByGraph[g];
+            // console.log('updateURI', updateURI);
+            // console.log('databank', databank);
+            // console.log('original', original);
             if (undefined !== updateURI && undefined !== databank) {
                 var added   = databank.except(original);
                 var removed = original.except(databank);
@@ -1177,10 +1180,13 @@ RDFauthor = (function($) {
                     }
 
                 } else {
+                    // console.log('use REST');
                     // REST style
                     var addedJSON = $.rdf.dump(added.triples());
                     var indexes   = _buildHashedObjectIndexes(removed.triples(), g);
                     // , {format: 'application/json', serialize: true})
+                    // console.log('JSON Added: ' + $.toJSON(addedJSON));
+                    // console.log('JSON Removed: ' + $.toJSON(indexes));
                     // return;
                     
                     if (addedJSON || removedJSON) {
@@ -1528,6 +1534,8 @@ RDFauthor = (function($) {
                                     }
                                 }
 
+                                // console.log('newObjectSpec', newObjectSpec);
+
                                 var stmt = new Statement({
                                     subject: '<' + config.targetResource + '>', 
                                     predicate: '<' + currentProperty + '>', 
@@ -1539,6 +1547,8 @@ RDFauthor = (function($) {
                                     hidden: objSpec.hidden ? objSpec.hidden : false
                                 });
 
+                                // console.log("Adding statement ", stmt);
+                                // console.log('Statement Graph', stmt.graphURI());
                                 self.addStatement(stmt);
 
                             }
@@ -1589,6 +1599,7 @@ RDFauthor = (function($) {
                                 }
                             }
 
+                            // console.log('newObjectSpec', newObjectSpec);
                             var stmt = new Statement({
                                 subject: '<' + config.targetResource + '>', 
                                 predicate: '<' + currentProperty + '>', 
@@ -1600,6 +1611,8 @@ RDFauthor = (function($) {
                                 hidden: objSpec.hidden ? objSpec.hidden : false
                             });
 
+                            // console.log("Adding statement ", stmt);
+                            // console.log('Statement Graph', stmt.graphURI());
                             self.addStatement(stmt);
                         }
                     }
@@ -1669,6 +1682,10 @@ RDFauthor = (function($) {
                 _options.viewOptions.type = config.view || 'popover';
                 _options.useSPARQL11 = config.useSPARQL11 || false;
 
+                // console.log('config', config);
+                // console.log('_graphInfo', _graphInfo);
+                // console.log('_options', _options);
+                // console.log('data', data);
                 $.when(createStatements()).then(function() {
                     setOptions();
                     createView();
@@ -2221,7 +2238,7 @@ RDFauthor = (function($) {
             } else {
                 _setRoot(null);
             }
-
+            
             this.eventTarget().trigger('rdfauthor.start');
             /* parse */
             _parse(function() {
@@ -2249,6 +2266,8 @@ RDFauthor = (function($) {
             // try to query the knowledge base
             var options = {
                 callbackSuccess: function (data) {
+                    // console.log('data', data);
+                    // console.log('predicateInfo', _predicateInfo);
                     if (!_predicateInfo.hasOwnProperty(predicateURI)) {
                         _predicateInfo[predicateURI] = {};
                     }
