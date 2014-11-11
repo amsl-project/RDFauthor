@@ -53,7 +53,7 @@ RDFauthor.registerWidget({
             //sindice:           true,   /* use Sindice semantic search */
             uri:                true,   /* provide generated URI */
             // Filter options:
-            filterRange:        false,   /* show only resources in the rdfs:range of the statement's property */
+            filterRange:        true,   /* show only resources in the rdfs:range of the statement's property */
             filterDomain:       false,  /* show only properties whose domain matches the statement's subject */
             filterProperties:   false,  /* show only resources used as properties */
             // Callbacks
@@ -103,6 +103,10 @@ RDFauthor.registerWidget({
         RDFauthor.loadStylesheet(RDFAUTHOR_BASE + 'src/widget.resource.css');
     },
 
+    getWidgetType: function() {
+        return "resource";
+    },
+
     ready: function () {
         this._domReady = true;
         this._initAutocomplete();
@@ -123,7 +127,7 @@ RDFauthor.registerWidget({
                 <input type="text" id="resource-input-' + this.ID + '" class="text resource-edit-input is-processing" \
                        value="' + value + '" title="' + value + '"/>\
                 <div class="rdfauthor-container util" style="padding:0px;">\
-                    <label><span style="padding-right: 5px;">Filter by</span>\
+                    <label><span style="padding-right: 5px;">' + _translate("Filter by") + '</span>\
                     <input class="checkbox checkbox-range" type="checkbox" name="range"\
                     '+ (this._options.filterRange ? 'checked="checked"' : '') + '">\
                     <label>Range</label></label>\
@@ -132,6 +136,31 @@ RDFauthor.registerWidget({
 
         return markup;
     },
+
+    resetMarkup: function(li, success) {
+        if (this.element().data('hasLabel')) {
+            var label = this.element().data('label');
+        }
+        else {
+            var label = this.value();
+        }
+        var predicate = this.statement._predicate.value._string;
+        var href = RDFAUTHOR_BASE.split('/').slice(0, -3).join('/') + '/view/?r=' + this.value();
+        if (success) {
+            var html = '<a resource="' + this.value() + '" \
+                class="expandable hasMenu Resource" \
+                rel="' + predicate + '" \
+                href="' + href + '">\
+                ' + label + '</a>';
+        }
+        else {
+            var html = '<span>' + this.value() + '</span>';
+        }
+        html = RDFAuthorTools.updateStatus(html, success);
+        li.html(html);
+        var widgetID = parseInt(this.ID) + 1;
+        $('#widget-'+widgetID).remove();
+     },
 
     submit: function () {
         if (this.shouldProcessSubmit()) {
@@ -150,25 +179,29 @@ RDFauthor.registerWidget({
                 }
             }
 
-            if (!this.removeOnSubmit && this.value()) {
-                var self = this;
-                try {
-                    var newStatement = this.statement.copyWithObject({
-                        value: '<' + this.value() + '>',
-                        // value: ( self.statement._object.type == 'uri' ) ? '<' + this.value() + '>' 
-                                                                        // : '_:' + this.value(),
-                        // type: ( self.statement._object.type == 'bnode' ) ? 'bnode' : 'uri'
-                        type: 'uri'
-                    });
-                    databank.add(newStatement.asRdfQueryTriple());
-                } catch (e) {
-                    var msg = e.message ? e.message : e;
-                    alert('Could not save resource for the following reason: \n' + msg);
+            if (!this.removeOnSubmit) {
+                if (this.value() && this.value() !== '') {
+                    var self = this;
+                    try {
+                        var newStatement = this.statement.copyWithObject({
+                            value: '<' + this.value() + '>',
+                            // value: ( self.statement._object.type == 'uri' ) ? '<' + this.value() + '>' 
+                                                                            // : '_:' + this.value(),
+                            // type: ( self.statement._object.type == 'bnode' ) ? 'bnode' : 'uri'
+                            type: 'uri'
+                        });
+                        databank.add(newStatement.asRdfQueryTriple());
+                    } catch (e) {
+                        var msg = e.message ? e.message : e;
+                        alert('Could not save resource for the following reason: \n' + msg);
+                        return false;
+                    }
+                }
+                else {
                     return false;
                 }
             }
         }
-
         return true;
     },
 
@@ -181,12 +214,11 @@ RDFauthor.registerWidget({
     },
 
     value: function () {
-        var self = this;
         var value = self.element().data('uri');
-        if ( self.isURI(value) ) {
+        return self.isURI(value);
+        if ( this.isURI(value) ) {
             return value;
         }
-
         return null;
     },
     
@@ -473,8 +505,38 @@ RDFauthor.registerWidget({
 
     isURI: function (term) {
         // TODO: more advanced URI check
-        // return (/(https?:\/\/|mailto:|tel:)/.exec(term) !== null);
-        return (/^(?:([a-z0-9+.-]+:\/\/)((?:(?:[a-z0-9-._~!$&'()*+,;=:]|%[0-9A-F]{2})*)@)?((?:[a-z0-9-._~!$&'()*+,;=]|%[0-9A-F]{2})*)(:(?:\d*))?(\/(?:[a-z0-9-._~!$&'()*+,;=:@\/]|%[0-9A-F]{2})*)?|([a-z0-9+.-]+:)(\/?(?:[a-z0-9-._~!$&'()*+,;=:@]|%[0-9A-F]{2})+(?:[a-z0-9-._~!$&'()*+,;=:@\/]|%[0-9A-F]{2})*)?)(\?(?:[a-z0-9-._~!$&'()*+,;=:\/?@]|%[0-9A-F]{2})*)?(#(?:[a-z0-9-._~!$&'()*+,;=:\/?@]|%[0-9A-F]{2})*)?$/i.exec(term) !== null);
+        /*
+         * This regex matches URIs of the form http://www.example.org in the matching
+         * groups 1 to 5 and prefixed URIs like ex:ampleTerm in the matching groups
+         * 6 to 9.
+         *
+         * NB: Matching group 0 is the whole match.
+         */
+        var regex = /^(?:([a-z0-9+.-]+:\/\/)((?:(?:[a-z0-9-._~!$&'()*+,;=:]|%[0-9A-F]{2})*)@)?((?:[a-z0-9-._~!$&'()*+,;=]|%[0-9A-F]{2})*)(:(?:\d*))?(\/(?:[a-z0-9-._~!$&'()*+,;=:@\/]|%[0-9A-F]{2})*)?|([a-z0-9+.-]+):(\/?(?:[a-z0-9-._~!$&'()*+,;=:@]|%[0-9A-F]{2})+(?:[a-z0-9-._~!$&'()*+,;=:@\/]|%[0-9A-F]{2})*)?)(\?(?:[a-z0-9-._~!$&'()*+,;=:\/?@]|%[0-9A-F]{2})*)?(#(?:[a-z0-9-._~!$&'()*+,;=:\/?@]|%[0-9A-F]{2})*)?$/i;
+        var match = regex.exec(term);
+        if (match == null) {
+            return false;
+        }
+        if (match[6] !== undefined) {
+            if ($.inArray(match[6] in RDFauthor.namespaces()) == -1) {
+                if($.inArray(match[6], ['mailto', 'tel', 'urn']) != -1) {
+                    return term;
+                }
+                else {
+                    return false;
+                }
+            }
+            else {
+                var expandedUri = RDFauthor.namespaces()[match[6]];
+                for(var i = 7; i < 10; i++) {
+                    if(match[i] !== undefined) {
+                        expandedUri += match[i];
+                    }
+                }
+                return expandedUri;
+            }
+        }
+        return term;
     },
 
     highlight: function (text, term) {
@@ -522,11 +584,24 @@ RDFauthor.registerWidget({
 
             // keypress events
             self.element().keypress(function(event) {
+                self.element().removeClass('submit-failure');
                 // commit results on enter
                 if(event.which == 13) {
                     event.preventDefault();
                     self.element().data('uri', self.element().val());
-                    RDFauthor.commit();
+                    if (self.isURI(self.element().val()) && self._options.labels) {
+                        self.getLabel(self.element().val(), function(label, hasLabel) {
+                            self.element().data('uri', self.element().val());
+                            self.element().data('label', label);
+                            self.element().data('hasLabel', hasLabel);
+                            if (hasLabel) {
+                                self.element().val(label);
+                                self.element().removeClass('resource-autocomplete-uri')
+                                              .addClass('resource-autocomplete-uri-name');
+                            }
+                            RDFauthor.commit();
+                        });
+                    }
                 }
             });
 

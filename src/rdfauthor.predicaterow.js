@@ -88,8 +88,8 @@ function PredicateRow(subjectURI, predicateURI, title, container, id, allowOverr
         var html = '\
             <div class="widget" id="' + self._widgetIDPrefix + widgetID + '">\
                 <div class="rdfauthor-container actions right">\
-                    <a class="delete-button" title="Remove widget and data."></a>\
-                    <a class="add-button" title="Add another widget of the same type."></a>\
+                    <a class="delete-button" title="' + _translate('remove widget') + '"></a>\
+                    <a class="add-button" title="' + _translate('add widget') + '"></a>\
                 </div>' + getOverride() + '<div class="rdfauthor-widget-container" style="width:90%">' + widgetHTML + '</div>\
                 <hr style="clear:both;height:0;border:none" />\
             </div>';
@@ -142,7 +142,10 @@ function PredicateRow(subjectURI, predicateURI, title, container, id, allowOverr
 
             // instantiate widget
             if ((undefined !== constructor) && (typeof constructor == 'function')) {
-                widgetInstance = new constructor(statement);
+                if (self._widgets != {}) {
+                    var options = self._widgets[0].options;
+                }
+                widgetInstance = new constructor(statement, options);
                 widgetInstance.constructor = constructor;
             } else {
                 widgetInstance = RDFauthor.getWidgetForStatement(statement);
@@ -302,7 +305,14 @@ PredicateRow.prototype = {
         for (var i = 0; i < this.numberOfWidgets(); i++) {
             var widgetInstance = this.getWidget(i);
             if (widgetInstance) {
-                submitOk &= widgetInstance.submit();
+                var widgetSubmit = widgetInstance.submit();
+                submitOk &= widgetSubmit;
+                if(widgetSubmit == false) {
+                    widgetInstance.element().addClass('submit-failure');
+                }
+                else {
+                    widgetInstance.element().removeClass('submit-failure');
+                }
             }
         }
 

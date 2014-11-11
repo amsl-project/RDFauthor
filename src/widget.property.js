@@ -7,13 +7,19 @@
 
 
 RDFauthor.registerWidget({
-    init: function () {
+    init: function (addPropertyValues, addOptionalPropertyValues) {
+        this._addPropertyValues = addPropertyValues || undefined;
+        this._addOptionalPropertyValues = addOptionalPropertyValues || undefined;
         this._propertiesInUse = [];
+        this._templateProperties = [];
         this._filterProperties = "search for properties or enter a custom property uri";
         this._domReady     = false;
         this._pluginLoaded = false;
         this._initialized  = false;
         this._autocomplete = null;
+
+        /* better support for datatype */
+        this._additionalInfo = [];
 
         this._namespaces = jQuery.extend({
             foaf: 'http://xmlns.com/foaf/0.1/',
@@ -86,7 +92,7 @@ RDFauthor.registerWidget({
             </div>';
             var propertyPicker = '\
                 <div id="propertypicker" class="window ui-draggable ui-resizable">\
-                  <h1 class="title">Suggested Properties</h1>\
+                  <h1 class="title">' + _translate('Suggested Properties') + '</h1>\
                   <div class="window-buttons">\
                     <div class="window-buttons-left"></div>\
                     <div class="window-buttons-right">\
@@ -101,13 +107,28 @@ RDFauthor.registerWidget({
                         <h1 class="propertyHeadline">\
                           <div class="has-contextmenu-area">\
                             <div class="contextmenu">\
-                              <a class="item" title="These properties are currently in use at other resources of the same class(es)."><span class="item icon icon-list ui-icon ui-icon-help"></span></a>\
+                              <a class="item" title="' + _translate('elsewhereHelpText') + '"><span class="item icon icon-list ui-icon ui-icon-help"></span></a>\
                             </div>\
                             <span style="display: inline-block !important;" class="ui-icon ui-icon-minus"></span>\
-                            <span>In use elsewhere (<span id="suggestedInUseCount"></span>)</span>\
+                            <span>' + _translate('In use elsewhere') + ' (<span id="suggestedInUseCount"></span>)</span>\
                           </div>\
                         </h1>\
                         <div id="suggestedInUse">\
+                          <ul class="inline separated">\
+                          </ul>\
+                        </div>\
+                      </li>\
+                      <li id="templatePropertiesLi" style="display: none;">\
+                        <h1 class="propertyHeadline">\
+                          <div class="has-contextmenu-area">\
+                            <div class="contextmenu">\
+                              <a class="item" title="' + _translate('templatePropertiesHelpText') + '"><span class="item icon icon-list ui-icon ui-icon-help"></span></a>\
+                            </div>\
+                            <span style="display: inline-block !important;" class="ui-icon ui-icon-minus"></span>\
+                            <span>' + _translate('Template Properties') + ' (<span id="templateCount"></span>)</span>\
+                          </div>\
+                        </h1>\
+                        <div id="templateProperties">\
                           <ul class="inline separated">\
                           </ul>\
                         </div>\
@@ -116,10 +137,10 @@ RDFauthor.registerWidget({
                         <h1 class="propertyHeadline">\
                           <div class="has-contextmenu-area">\
                             <div class="contextmenu">\
-                              <a class="item" title="These properties are generally applicable to all resources. "><span class="item icon icon-list ui-icon ui-icon-help"></span></a>\
+                              <a class="item" title="' + _translate('generallyHelpText') + '"><span class="item icon icon-list ui-icon ui-icon-help"></span></a>\
                             </div>\
                             <span style="display: inline-block !important;" class="ui-icon ui-icon-minus"></span>\
-                            <span>General applicable (<span id="suggestedGeneralCount"></span>)</span>\
+                            <span>' + _translate('Generally applicable') + ' (<span id="suggestedGeneralCount"></span>)</span>\
                           </div>\
                         </h1>\
                         <div id="suggestedGeneral">\
@@ -238,15 +259,19 @@ RDFauthor.registerWidget({
     },
 
     localName: function (uri) {
-        var s = String(uri);
-        var l;
-        if (s.lastIndexOf('#') > -1) {
-            l = s.substr(s.lastIndexOf('#') + 1);
-        } else {
-            l = s.substr(s.lastIndexOf('/') + 1);
+        if (uri in this._additionalInfo && this._additionalInfo[uri]["label"] != undefined) {
+            return this._additionalInfo[uri]["label"];
         }
-
-        return (l !== '') ? l : s;
+        else {
+            var s = String(uri);
+            var l;
+            if (s.lastIndexOf('#') > -1) {
+                l = s.substr(s.lastIndexOf('#') + 1);
+            } else {
+                l = s.substr(s.lastIndexOf('/') + 1);
+            }
+            return (l !== '') ? l : s;
+        }
     },
 
     expandNamespace: function (prefixedName) {
@@ -271,7 +296,7 @@ RDFauthor.registerWidget({
         var typePattern = '<' + subjectURI + '> a ?class .\n';
         var classPattern = '?others a ?class .\n';
         var uriPattern = '?others ?resourceUri ?object .\n';
-        var labelPattern = 'OPTIONAL {?resourceUri rdfs:label ?label . } .\n';
+        var labelPattern = 'OPTIONAL {?resourceUri rdfs:label ?label . FILTER(langMatches(lang(?label), "' + RDFAUTHOR_LANGUAGE + '"))} .\n';
         var query = prefixPattern + 'SELECT ' + selectPattern
                                   + 'WHERE { \n'
                                   + typePattern
@@ -281,30 +306,72 @@ RDFauthor.registerWidget({
                                   + '}';
         var everywhereInUse = {};
         // request properties in use
-        RDFauthor.queryGraph(graphURI, query, {
-            callbackSuccess: function(data) {
-                var results = data.results.bindings;
-                for (var i in results) {
-                    if( (typeof(results[i].resourceUri) != "undefined")  && (i != "last") ) {
-                        var resourceUri = results[i].resourceUri.value;
-                        (typeof(results[i].label) != "undefined") &&
-                        (results[i].label != null)              ? everywhereInUse[resourceUri] = results[i].label.value
-                                                                : everywhereInUse[resourceUri] = null;
-                    }
+        self._additionalInfo = undefined;
+        if (self._addPropertyValues != undefined) {
+            self._templateProperties = self._addPropertyValues;
+            if (self._addOptionalPropertyValues != undefined) {
+                self._templateProperties = $.extend({}, self._templateProperties, self._addOptionalPropertyValues);
+            }
+        }
+        else if ($("#template-properties").length > 0) {
+            self._templateProperties = $("#template-properties").data('properties');
+            if ($("#template-optional-properties").length > 0) {
+                self._templateProperties = $.extend({}, self._templateProperties, $("#template-optional-properties").data('properties'));
+            }
+        }
+        self._additionalInfo = [];
+        for (var k in self._templateProperties) {
+            self._additionalInfo[k] = {"label" : self._templateProperties[k]["label"]};
+        }
+        if (self._additionalInfo != undefined) {
+            for (var k in self._additionalInfo) {
+               if (self._additionalInfo[k] === '') {
+                   delete self._additionalInfo[k];
+                   everywhereInUse[k] = null;
+               }
+               else {
+                  if (self._additionalInfo[k]["label"] != undefined) {
+                      everywhereInUse[k] = self._additionalInfo[k]["label"];
+                  }
+                  else {
+                      everywhereInUse[k] = null;
+                  }
+               }
+            }
+            self._hasProperties(function(hasProperties){
+                $.merge(self._propertiesInUse, hasProperties);
+                for (var resourceUri in everywhereInUse) {
+                    self._propertiesInUse.push(resourceUri);
                 }
-                self._hasProperties(function(hasProperties){
-                    $.merge(self._propertiesInUse, hasProperties);
-                    for (var resourceUri in everywhereInUse) {
-                        if ($.inArray(resourceUri, hasProperties) != -1) {
-                            delete everywhereInUse[resourceUri];
-                        } else {
-                            self._propertiesInUse.push(resourceUri);
+                $.isFunction(callback) ? callback(everywhereInUse) : null;
+            })
+        }
+        else {
+            RDFauthor.queryGraph(graphURI, query, {
+                callbackSuccess: function(data) {
+                    var results = data.results.bindings;
+                    for (var i in results) {
+                        if( (typeof(results[i].resourceUri) != "undefined")  && (i != "last") ) {
+                            var resourceUri = results[i].resourceUri.value;
+                            (typeof(results[i].label) != "undefined") &&
+                            (results[i].label != null)              ? everywhereInUse[resourceUri] = results[i].label.value
+                                                                    : everywhereInUse[resourceUri] = null;
                         }
                     }
-                    $.isFunction(callback) ? callback(everywhereInUse) : null;
-                })
-            }
-        });
+                    self._hasProperties(function(hasProperties){
+                        $.merge(self._propertiesInUse, hasProperties);
+                        for (var resourceUri in everywhereInUse) {
+                            if ($.inArray(resourceUri, hasProperties) != -1) {
+                                delete everywhereInUse[resourceUri];
+                            } else {
+                                self._propertiesInUse.push(resourceUri);
+                            }
+                        }
+                        $.isFunction(callback) ? callback(everywhereInUse) : null;
+                    })
+                }
+            });
+        }
     },
 
     _hasProperties: function (callback) {
@@ -401,7 +468,7 @@ RDFauthor.registerWidget({
     _normalizeValue: function (value) {
         if (!this.selectedResource) {
             this.selectedResource      = this.expandNamespace(value);
-            this.selectedResourceLabel = this.localName(value);
+            this.selectedResourceLabel = this.localName(this.selectedResource);
         }
     },
 
@@ -430,7 +497,6 @@ RDFauthor.registerWidget({
                                             e.stopPropagation();
                                             $('#propertypicker').parent().fadeOut();
                                             self._reinitialization();
-                                            // console.log('removed');
                                         }
                                     });
                 // query - fills the everywhere in use part
@@ -440,6 +506,15 @@ RDFauthor.registerWidget({
                         $('#suggestedInUse ul').append(self._listProperty(resourceUri,everywhereInUse[resourceUri],resourceUri));
                     }
                     $('#suggestedInUseCount').html(Object.size(everywhereInUse));
+
+                    for (var resourceUri in self._templateProperties) {
+                        $('#templateProperties ul').append(self._listProperty(resourceUri,self._templateProperties[resourceUri]['label']));
+                    }
+                    var templateCount = Object.size(self._templateProperties);
+                    if (templateCount > 0) {
+                        $('#templateCount').html(Object.size(self._templateProperties));
+                        $('#templatePropertiesLi').removeAttr('style');
+                    }
 
                     // add general applicable to dom
                     var generalapplicable = __propertycache['generalapplicable'];
@@ -466,7 +541,7 @@ RDFauthor.registerWidget({
                         self._positioning();
                         $('#filterProperties').focus().blur(function() {
                             if ($(this).val().length == 0) {
-                                $(this).val(self._filterProperties);                            
+                                $(this).val(self._filterProperties);
                             }
                         });
                     });
@@ -475,8 +550,10 @@ RDFauthor.registerWidget({
                 if ((e.which === 13) && self._options.selectOnReturn) {
                     $('#propertypicker').hide();
                     var val = jQuery(e.target).val();
+                    val = self.expandNamespace(val);
                     self._normalizeValue(val);
 
+                    /*
                     var splits = val.split(':', 2);
                     if (splits.length >= 2 && !self.isURI(val)) {
                         if (splits[0] in self._namespaces) {
@@ -484,9 +561,14 @@ RDFauthor.registerWidget({
                             self.selectedResourceLabel = splits[1];
                         }
                     }
+                    */
 
-                    self._options.selectionCallback(self.selectedResource, self.selectedResourceLabel);
-
+                    if ((self._additionalInfo != undefined) && (self.selectedResource in self._additionalInfo) && (self.selectedResource[self._additionalInfo] !== '') && ("datatype" in self._additionalInfo[self.selectedResource])) {
+                        self._options.selectionCallback(self.selectedResource, self.selectedResourceLabel, self._additionalInfo[self.selectedResource]["datatype"]);
+                    }
+                    else {
+                        self._options.selectionCallback(self.selectedResource, self.selectedResourceLabel);
+                    }
                     // prevent newline in new widget field
                     e.preventDefault();
                 } else if (e.which === 27) {
@@ -583,12 +665,6 @@ RDFauthor.registerWidget({
                 var width = $(document).width();
                 var windowh = $(window).height();
                 var windoww = $(window).width();
-                // console.log('scrolltop', $(document).scrollTop());
-                // console.log('bodyh', height);
-                // console.log('bodyw', width);
-                // console.log('windowh', windowh);
-                // console.log('windoww', windoww);
-
                 // $('.modal-wrapper-propertyselector').css('min-height', '100%');
                 // $('.modal-wrapper-propertyselector').css('min-width', '100%');
             });
@@ -643,14 +719,6 @@ RDFauthor.registerWidget({
         var windoww = $(window).width();
         var ww = element.outerWidth();
         var wh = element.outerHeight();
-        
-        // console.log('scrolltop', $(document).scrollTop());
-        // console.log('bodyh', bodyh);
-        // console.log('bodyw', bodyw);
-        // console.log('windowh', windowh);
-        // console.log('windoww', windoww);
-        // console.log('ww', ww);
-        // console.log('wh', wh);
 
         var offsetPosition = {
             'top': Math.max( (windowh - wh) * 0.5 + $(document).scrollTop(), 20),

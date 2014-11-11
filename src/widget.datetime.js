@@ -18,15 +18,35 @@ RDFauthor.registerWidget({
         this._domRdy = false;
         var self = this;
 
+        /*
+        console.log("Widget-Element: ", self.element());
+        self.element().keypress(function(event) {
+            // commit results on enter
+            console.log("Keypress on datetime");
+            if(event.which == 13) {
+                event.preventDefault();
+                RDFauthor.commit();
+            }
+        });
+        */
+
         if (undefined === jQuery.ui.datepicker) {
             RDFauthor.loadScript(RDFAUTHOR_BASE + 'libraries/jquery.ui.js');
             // RDFauthor.loadStylesheet(RDFAUTHOR_BASE + 'libraries/jquery.ui.css');
         }
-        RDFauthor.loadScript(RDFAUTHOR_BASE + 'libraries/jquery-ui-timepicker-addon.js', function () {
-            self._datetimepickerLoaded = true;
-            self._init();
-        });
+        
+        if (undefined === jQuery.ui.timepicker) {
+            RDFauthor.loadScript(RDFAUTHOR_BASE + 'libraries/jquery-ui-timepicker-addon.js', function () {
+                self._datetimepickerLoaded = true;
+                self._init();
+            });
+        }
+        
         RDFauthor.loadStylesheet(RDFAUTHOR_BASE + 'libraries/jquery-ui-timepicker-addon.css');
+    },
+
+    getWidgetType: function() {
+        return 'datetime';
     },
 
     // Uncomment this to execute code when you widget's markup is ready in the DOM,
@@ -63,6 +83,21 @@ RDFauthor.registerWidget({
         return markup;
     },
 
+    resetMarkup: function(li, success) {
+        var predicate = this.statement._predicate.value._string;
+        var datatype = this.statement.objectDatatype();
+        html = RDFAuthorTools.updateStatus('<span>' + this.value() + '</span>', success);
+        li.html(html);
+        li.attr('datatype', datatype);
+        li.attr('content', this.value());
+        li.attr('property', predicate);
+        li.removeData();
+        // TODO: update hash?!
+        li.removeAttr('data-object-hash');
+        var widgetID = parseInt(this.ID) + 1;
+        $('#widget-'+widgetID).remove();
+    },
+
     // commit changes here (add/remove/change)
     submit: function () {
         if (this.shouldProcessSubmit()) {
@@ -79,7 +114,21 @@ RDFauthor.registerWidget({
             if (somethingChanged || this.removeOnSubmit) {
                 var rdfqTriple = this.statement.asRdfQueryTriple();
                 if (rdfqTriple) {
-                    databank.remove(rdfqTriple);
+                    /*
+                     * this check is necessary because of the combined reason of:
+                     * - we need to provide an object due to a bug in the jQuery-RDFquery
+                     *   library concerning empty literals of type xsd:date
+                     * - if this (or any RDFauthor) widget has an object, it basically
+                     *   assumes it is started in edit mode and thus has to delete
+                     *   the old triple
+                     * - jQuery-RDFquery does not check if a triple that is passed
+                     *   to the tripleStore.remove function is indeed in the triple store.
+                     *   in case it actually isn't in the triple store, the first triple
+                     *   will be removed
+                     */
+                    if ($.inArray(rdfqTriple, databank.tripleStore) != -1) {
+                        databank.remove(rdfqTriple);
+                    }
                 }
             }
 
@@ -120,7 +169,8 @@ RDFauthor.registerWidget({
     },
     _init: function () {
         var self = this;
-        if (self._datetimepickerLoaded && self._domRdy) {
+        if (self._domRdy) {
+        //if (self._datetimepickerLoaded && self._domRdy) {
             var datatype = this.statement.objectDatatype();
             switch(datatype) {
                 case self.datatypes['date']:

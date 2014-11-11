@@ -61,6 +61,10 @@ RDFauthor = (function($) {
         'hidden': []
     };
 
+    var _i18nLoaded = false;
+
+    var _toolsLoaded = false;
+
     /** Wheather the property axiom cache has been loaded */
     var _cacheLoaded = false;
 
@@ -137,8 +141,8 @@ RDFauthor = (function($) {
     /** Default options */
     var _defaultOptions = {
         title: 'Title', 
-        saveButtonTitle: 'saveButtonTitle', 
-        cancelButtonTitle: 'cancelButtonTitle', 
+        saveButtonTitle: 'save', 
+        cancelButtonTitle: 'cancel', 
         showButtons: true, 
         useAnimations: true, 
         autoParse: true, 
@@ -164,7 +168,8 @@ RDFauthor = (function($) {
         'resource':   {}, 
         'property':   {}, 
         'range':      {}, 
-        'datatype':   {}
+        'datatype':   {},
+        'other': {}
     };
     
     /**
@@ -372,10 +377,19 @@ RDFauthor = (function($) {
                 RDFauthor.cancel();
                 _callIfIsFunction(_options.onCancel);
             }, 
+            addPropertyValues: _options.addPropertyValues,
+            addOptionalPropertyValues: _options.addOptionalPropertyValues,
             container: _options.container ? _options.container : $('.modal-wrapper').eq(0), 
             useAnimations: _options.useAnimations
         });
         
+        options.cancelButtonTitle = _translate(options.cancelButtonTitle
+                                            || _defaultOptions.cancelButtonTitle);
+        options.saveButtonTitle = _translate(options.saveButtonTitle
+                                            || _defaultOptions.saveButtonTitle );
+        options.propertyButtonTitle = _translate("Add Property");
+        options.title = _translate(options.title || _defaultOptions.title);
+
         // init view controller
         var viewController = new PopoverController(options);
         
@@ -486,6 +500,19 @@ RDFauthor = (function($) {
         return null;
     }
 
+    function _loadTools() {
+        if (!_toolsLoaded) {
+            _require(RDFAUTHOR_BASE + 'src/rdfauthor.tools.js');
+        }
+    }
+
+    function _loadI18n() {
+        if (!_i18nLoaded) {
+            _require(RDFAUTHOR_BASE + 'src/rdfauthor.i18n.js');
+            _i18nLoaded = true;
+        }
+    }
+
     function _loadCache() {
         if (!_cacheLoaded) {
             _require(RDFAUTHOR_BASE + 'src/rdfauthor.cache.js', function () {
@@ -517,6 +544,58 @@ RDFauthor = (function($) {
             dfd.resolve();
         }
         return dfd.promise();
+    }
+
+    /*
+     * Fetch values according to the order in the view
+     */
+    function _fetchValues() {
+        var graph;
+        for (var g in _graphInfo) {
+            if (undefined !== RDFauthor.serviceURIForGraph(g)) {
+                graph = g;
+                break;
+            }
+        }
+
+        // fallback to default graph
+        if (undefined === graph) {
+            graph = RDFauthor.defaultGraphURI();
+        }
+
+        var values = new Array();
+        var valueObject = {};
+        var subj = '';
+        var pred = '';
+
+        for (var index in _view._rows) {
+            var subject = _view._rows[index]._subjectURI;
+            var predicate = _view._rows[index]._predicateURI;
+            if ((pred != predicate) || (subj != subject)) {
+                pred = predicate;
+                subj = subject;
+                var query = "select ?v where { <" + subject + "> <" + predicate + "> ?v . }";
+                RDFauthor.queryGraph(graph, query, {
+                    callbackSuccess: function (result) {
+                        if (result && result['results'] && result['results']['bindings']) {
+                            var bindings = result['results']['bindings'];
+                            for (var i = 0; i < bindings.length; i++) {
+                                var row = bindings[i];
+                                values.push(row['v'].value);
+                            }
+                        }
+                    },
+                    callbackError: function () {
+                        // SPARQL error
+                    },
+                    // synchronous
+                    async: false
+                })
+                valueObject[pred] = values;
+                values = new Array();
+            }
+        }
+        return valueObject;
     }
 
     /**
@@ -675,7 +754,8 @@ RDFauthor = (function($) {
      * @param {function} function that will be called when the script finished loading (optional)
      */
     function _loadScript(scriptURI, callback) {
-        if (_loadedScripts[scriptURI] === SCRIPT_STATE_UNKNOWN) {
+        if ((_loadedScripts[scriptURI] === SCRIPT_STATE_UNKNOWN) &&
+               ($("script[src='"+ scriptURI + "']").length == 0)) {
             // load script
             var s  = document.createElement('script');
             s.type = 'text/javascript';
@@ -874,6 +954,18 @@ RDFauthor = (function($) {
                     var updateEndpoint = RDFauthor.updateURIForGraph(graph);
                     if (undefined !== updateEndpoint) {
                         var triples = _databanksByGraph[graph].triples();
+                        // if an order for the predicates is given, resort triples
+                        if (_options.propertyOrder != null) {
+                            var sortedTriples = [];
+                            for (var i = 0; i < _options.propertyOrder.length; i++) {
+                                for (var j = 0; j < triples.length; j++) {
+                                   if (triples[j].property.value._string === _options.propertyOrder[i]) {
+                                       sortedTriples.push(triples[j]);
+                                   }
+                                }
+                            }
+                            var triples = sortedTriples;
+                        }
                         for (var i = 0, length = triples.length; i < length; i++) {
                             // init statement
                             var statement = new Statement(triples[i], {'graph': graph});
@@ -1032,9 +1124,6 @@ RDFauthor = (function($) {
             var updateURI = RDFauthor.updateURIForGraph(g);
             var databank  = RDFauthor.databankForGraph(g);
             var original  = _extractedByGraph[g];
-            // console.log('updateURI', updateURI);
-            // console.log('databank', databank);
-            // console.log('original', original);
             if (undefined !== updateURI && undefined !== databank) {
                 var added   = databank.except(original);
                 var removed = original.except(databank);
@@ -1074,8 +1163,10 @@ RDFauthor = (function($) {
                                 },
                                 dataType: 'json'
                             }).done(function (responseData, textStatus, XHR) {
+                                _view.resetToUnedit(_fetchValues());
                                 _view.hide(true);
                                 _callIfIsFunction(_options.onSubmitSuccess, [responseData]);
+                                RDFauthor.reset();
                             }).fail(function (jqXHR, textStatus, errorThrown) {
                                 alert('error while post request: ' + errorThrown);
                             });
@@ -1086,13 +1177,10 @@ RDFauthor = (function($) {
                     }
 
                 } else {
-                    // console.log('use REST');
                     // REST style
                     var addedJSON = $.rdf.dump(added.triples());
                     var indexes   = _buildHashedObjectIndexes(removed.triples(), g);
                     // , {format: 'application/json', serialize: true})
-                    // console.log('JSON Added: ' + $.toJSON(addedJSON));
-                    // console.log('JSON Removed: ' + $.toJSON(indexes));
                     // return;
                     
                     if (addedJSON || removedJSON) {
@@ -1109,8 +1197,10 @@ RDFauthor = (function($) {
                                 },
                                 dataType: 'json'
                             }).done(function (responseData, textStatus, XHR) {
+                                _view.resetToUnedit(_fetchValues());
                                 _view.hide(true);
                                 _callIfIsFunction(_options.onSubmitSuccess, [responseData]);
+                                RDFauthor.reset();
                             }).fail(function (jqXHR, textStatus, errorThrown) {
                                 alert('error while post request: ' + errorThrown);
                             });
@@ -1158,6 +1248,10 @@ RDFauthor = (function($) {
 
         // Cache
         _loadCache();
+        
+        _loadTools();
+
+        _loadI18n();
 
         // jQuery UI
         if (undefined === $.ui) {
@@ -1294,9 +1388,12 @@ RDFauthor = (function($) {
         commit: function () {
             _cloneDatabanks();
             if (this.getView().submit()) {
+                $('.rdfauthor-widget-container input').attr("disabled","disabled");
+                $('.rdfauthor-widget-container textarea').attr("disabled","disabled");
                 _updateSources();
+                return true;
             } else {
-                _restoreDatabanks();
+                return false;
             }
         },
         
@@ -1431,8 +1528,6 @@ RDFauthor = (function($) {
                                     }
                                 }
 
-                                // console.log('newObjectSpec', newObjectSpec);
-
                                 var stmt = new Statement({
                                     subject: '<' + config.targetResource + '>', 
                                     predicate: '<' + currentProperty + '>', 
@@ -1444,8 +1539,6 @@ RDFauthor = (function($) {
                                     hidden: objSpec.hidden ? objSpec.hidden : false
                                 });
 
-                                // console.log("Adding statement ", stmt);
-                                // console.log('Statement Graph', stmt.graphURI());
                                 self.addStatement(stmt);
 
                             }
@@ -1496,7 +1589,6 @@ RDFauthor = (function($) {
                                 }
                             }
 
-                            // console.log('newObjectSpec', newObjectSpec);
                             var stmt = new Statement({
                                 subject: '<' + config.targetResource + '>', 
                                 predicate: '<' + currentProperty + '>', 
@@ -1508,8 +1600,6 @@ RDFauthor = (function($) {
                                 hidden: objSpec.hidden ? objSpec.hidden : false
                             });
 
-                            // console.log("Adding statement ", stmt);
-                            // console.log('Statement Graph', stmt.graphURI());
                             self.addStatement(stmt);
                         }
                     }
@@ -1579,10 +1669,6 @@ RDFauthor = (function($) {
                 _options.viewOptions.type = config.view || 'popover';
                 _options.useSPARQL11 = config.useSPARQL11 || false;
 
-                // console.log('config', config);
-                // console.log('_graphInfo', _graphInfo);
-                // console.log('_options', _options);
-                // console.log('data', data);
                 $.when(createStatements()).then(function() {
                     setOptions();
                     createView();
@@ -1708,9 +1794,15 @@ RDFauthor = (function($) {
             var datatypeURI  = statement.hasObject() ? statement.objectDatatype() : null;
             var ranges       = this.infoForPredicate(predicateURI, 'range');
             var types        = this.infoForPredicate(predicateURI, 'type');
+            var owlOneOf     = this.infoForPredicate(predicateURI, 'owlOneOf');
             
+            var options = { workingMode : _options.workingMode };
+
             // local widget selection
-            if (subjectURI in _registeredWidgets.resource) {
+            if (owlOneOf === 'TRUE') {
+                widgetConstructor = _registeredWidgets.other.owlOneOf;
+                options.owlOneOf = ranges[0];
+            } else if (subjectURI in _registeredWidgets.resource) {
                 widgetConstructor = _registeredWidgets.resource[subjectURI];
             } else if (predicateURI in _registeredWidgets.property) {
                 widgetConstructor = _registeredWidgets.property[predicateURI];
@@ -2015,15 +2107,15 @@ RDFauthor = (function($) {
          * Resets private variables (mainly used for testing).
          */
         reset: function () {
-            _resetDatabanks();
-            _resetOptions();
+            //_resetDatabanks();
+            //_resetOptions();
             _resetParser();
             _resetView();
             
             _defaultGraphURI   = null;
             _defaultSubjectURI = null;
-            _loadedScripts     = {};
-            _loadedStylesheets = {};
+            //_loadedScripts     = {};
+            //_loadedStylesheets = {};
             
             // remove events
             $(this.eventTarget()).unbind();
@@ -2105,8 +2197,8 @@ RDFauthor = (function($) {
          * those triples that where extracted from root or its children are beeing edited.
          * @param {HTMLElement} root
          */
-        start: function (root) {
-
+        start: function (root, options) {
+            window.RDFAUTHOR_LANGUAGE = window.RDFAUTHOR_LANGUAGE || 'en';
             // TEMPORARY until next big refactoring of RDFauthor
             // load ontowiki stylesheet when rdfauthor is used without ontowiki
             if (_options.loadOwStylesheet) {
@@ -2121,13 +2213,15 @@ RDFauthor = (function($) {
                 }
             }
 
+            _options = $.extend({}, _options, options);
+
             var self = this;
             if (arguments.length >= 1) {
                 _setRoot(root);
             } else {
                 _setRoot(null);
             }
-            
+
             this.eventTarget().trigger('rdfauthor.start');
             /* parse */
             _parse(function() {
@@ -2155,8 +2249,6 @@ RDFauthor = (function($) {
             // try to query the knowledge base
             var options = {
                 callbackSuccess: function (data) {
-                    // console.log('data', data);
-                    // console.log('predicateInfo', _predicateInfo);
                     if (!_predicateInfo.hasOwnProperty(predicateURI)) {
                         _predicateInfo[predicateURI] = {};
                     }
@@ -2178,6 +2270,10 @@ RDFauthor = (function($) {
                             _predicateInfo[predicateURI][rangeURI].push(self.expandNamespace(response[i]['range'].value));
                         } else if (response[i].hasOwnProperty('range')) {
                             _predicateInfo[predicateURI][rangeURI] = [self.expandNamespace(response[i]['range'].value)];
+                        }
+
+                        if (response[i].hasOwnProperty('owlOneOf')) {
+                            _predicateInfo[predicateURI].owlOneOf = 'TRUE';
                         }
                     });
 
@@ -2204,10 +2300,12 @@ RDFauthor = (function($) {
                 dfd.resolve();
             } else {
                 // query
-                var query = 'SELECT ?type ?range'
+                var query = 'SELECT ?type ?range ?owlOneOf'
                           + ' WHERE {'
                           + ' <' + predicateURI + '> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?type .'
-                          + ' OPTIONAL { <' + predicateURI + '> <http://www.w3.org/2000/01/rdf-schema#range> ?range }'
+                          + ' OPTIONAL { <' + predicateURI + '> <http://www.w3.org/2000/01/rdf-schema#range> ?range '
+                          + '    OPTIONAL { ?range <http://www.w3.org/2002/07/owl#oneOf> ?owlOneOf } '
+                          + ' }'
                           + ' }';
 
                 // debug log

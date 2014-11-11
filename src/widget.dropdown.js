@@ -16,7 +16,10 @@ RDFauthor.registerWidget({
         this._shiftenter  = false;
         this._elastic     = false;
         this.languages.unshift('');
-        
+
+        // for testing purposes
+        this.datatypeURI = this.options.owlOneOf;
+
         var self = this;
 
         //load shiftenter plugin
@@ -37,10 +40,54 @@ RDFauthor.registerWidget({
         if ($.browser.webkit) {
             RDFauthor.loadStylesheet(RDFAUTHOR_BASE + 'src/widget.literal.css');
         }
+        //this.fetchValuesRecursively();
+        this.fetchValues();
     },
 
     getWidgetType: function() {
-        return 'literal';
+        return 'dropdown';
+    },
+
+    fetchValues: function() {
+        var drop = [];
+        var dropalt = {};
+        var graphURI = this.statement.graphURI();
+
+        var query = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ' ;
+        query += 'SELECT ?elem ?label WHERE {';
+        query += '    <' + this.datatypeURI + '> <http://www.w3.org/2002/07/owl#oneOf> ?list . ';
+        query += '    ?list rdf:rest*/rdf:first ?elem . ';
+        query += '    OPTIONAL {';
+        query += '        ?elem <http://www.w3.org/2000/01/rdf-schema#label> ?label .';
+        query += "        FILTER(lang(?label) = '" + RDFAUTHOR_LANGUAGE + "')";
+        query += '    }';
+        query += '}';
+
+        var options = {
+            callbackSuccess: function (data) {
+                // iterate through resultset and add predicate info to cache
+                var response = data['results']['bindings'];
+                for (var i = 0; i < response.length; i++) {
+                    var op = 'option' + (i+1);
+                    dropalt[op] = {
+                        'value' : response[i]['elem']['value'],
+                        'type'  : response[i]['elem']['type']
+                    }
+                    if (response[i]['label'] !== undefined) {
+                        dropalt[op]['label'] = response[i]['label']['value'];
+                    }
+                    drop.push(response[i]['elem']['value']);
+                }
+            },
+            callbackError: function (err) {
+                console.log('err', err);
+                // resolve deferred object
+                dfd.resolve();
+            },
+            async: false
+        };
+        RDFauthor.queryGraph(this.statement.graphURI(), query, options);
+        this.dropValues = dropalt;
     },
 
     ready: function () {
@@ -158,6 +205,36 @@ RDFauthor.registerWidget({
         return cls;
     },
 
+    resetMarkup: function(li, success) {
+        var predicate = this.statement._predicate.value._string;
+        var href = RDFAUTHOR_BASE.split('/').slice(0, -3).join('/') + '/view/?r=' + this.value();
+        if (success) {
+            var html = '<a resource="' + this.value() + '" \
+                class="expandable hasMenu Resource" \
+                rel="' + predicate + '" \
+                href="' + href + '">\
+                ' + this.text() + '</a>';
+        }
+        else {
+            var html = '<span>' + this.value() + '</span>';
+        }
+        html = RDFAuthorTools.updateStatus(html, success);
+        li.html(html);
+        var widgetID = parseInt(this.ID) + 1;
+        $('#widget-'+widgetID).remove();
+        return;
+
+        // TODO: Different markup for literal dropdown values
+        var predicate = this.statement._predicate.value._string;
+        var href = RDFAUTHOR_BASE.split('/').slice(0, -3).join('/') + '/view/?r=' + this.value();
+        var html = '<a resource="' + this.value() + '" \
+                      class="expandable hasMenu Resource" \
+                      rel="' + predicate + '" \
+                      href="' + href + '">\
+                   ' + this.text() + '</a>';
+        return html;
+    },
+
     isLarge: function () {
         if (this.statement.hasObject()) {
             var objectValue = this.statement.objectValue();
@@ -199,7 +276,7 @@ RDFauthor.registerWidget({
 
             // Firefox hack
             if (display == '') {
-                display = '[' + _translate('none') + ']';
+                display = '[none]';
             }
 
             optionString += '<option value="' + options[i] + '"' + (current ? 'selected="selected"' : '') + '>' + display + '</option>';
@@ -209,35 +286,7 @@ RDFauthor.registerWidget({
     },
 
     element: function () {
-        return jQuery('#literal-value-' + this.ID);
-    },
-
-    resetMarkup: function(li, success) {
-        var predicate = this.statement._predicate.value._string;
-        html = RDFAuthorTools.updateStatus('<span>' + this.value() + '</span>', success);
-        li.html(html);
-        li.attr('content', this.value());
-        li.attr('property', predicate);
-
-        if (this.datatype() !== null) {
-            li.attr('datatype', this.datatype());
-        }
-        else {
-            li.removeAttr('datatype');
-        }
-
-        if (this.lang() !== null) {
-            li.attr('xml:lang', this.lang());
-        }
-        else {
-            li.removeAttr('xml:lang');
-        }
-
-        li.removeData();
-        // TODO: update hash?!
-        li.removeAttr('data-object-hash');
-        var widgetID = parseInt(this.ID) + 1;
-        $('#widget-'+widgetID).remove();
+        return jQuery('#literal-value-' + this.ID + " option:selected");
     },
 
     markup: function () {
@@ -251,34 +300,52 @@ RDFauthor.registerWidget({
             readonly = 'readonly="true"';
         }
 
+                //<textarea class="width99" rows="' + String(areaConfig.rows) + '" cols="20" id="literal-value-' +
+                //    this.ID + '">' + (this.statement.hasObject() ? this.statement.objectValue() : '') + '</textarea>\
         var isBoolean = this.statement.objectDatatype() == this.bool ? true : false;
+
+        var dropDown = '';
+        for (var i = 0; i < Object.keys(this.dropValues).length; i++) {
+            var k = 'option' + (i+1).toString();
+            var value = this.dropValues[k].value;
+            var label = this.dropValues[k].label || this.dropValues[k].value;
+            // NOTE: check with != to catch null as well as undefined
+            if (this.statement._object != undefined && value == this.statement._object.value) {
+                dropDown += '<option selected value="' + k + '">' + label + '</option>';
+            }
+            else {
+                dropDown += '<option value="' + k + '">' + label + '</option>';
+            }
+        }
+
         var areaMarkup = '\
             <div class="rdfauthor-container ' + areaConfig.containerClass + '" style="width:100%">\
                 <div class="notboolean" style="' + ( isBoolean ? 'display:none;' : 'display:block;' ) + '">\
-                <textarea class="width99" rows="' + String(areaConfig.rows) + '" cols="20" id="literal-value-' +
-                    this.ID + '">' + (this.statement.hasObject() ? this.statement.objectValue() : '') + '</textarea>\
+                <select style="font-size: inherit;" id="literal-value-' + this.ID + '">' + dropDown + '</select>\
                 </div>\
                 <div class="boolean" style="' + ( isBoolean ? 'display:block;' : 'display:none;' ) + '">\
                     <label><input type="radio" class="radio" name="literal-type-'+this.ID+'-2"' + ( this.statement.objectDatatype() == this.bool && this.statement.objectValue() == 'true' ? 'checked="checked"' : '' ) + ' value="true" />True</label>\
                     <label><input type="radio" class="radio" name="literal-type-'+this.ID+'-2"' + ( this.statement.objectDatatype() == this.bool && this.statement.objectValue() == 'false' ? 'checked="checked"' : '' ) + ' value="false" />False</label>\
                 </div>\
-            </div>\
+            </div>';
+        /*
             <div class="rdfauthor-container util" style="clear:left">\
                 <a class="disclosure-button ' + areaConfig.buttonClass + ' open" id="' + this.disclosureID
-                        + '" title="' + _translate("Toggle details") + '"></a>\
+                        + '" title="Toggle details disclosure"></a>\
             </div>';
+        */
 
         var markup = '\
             ' + areaMarkup + '\
             <div class="rdfauthor-container literal-type util ' + this.disclosureID + '" style="display:none">\
                 <label><input type="radio" class="radio" name="literal-type-' + this.ID + '"'
-                        + (this.statement.objectDatatype() ? '' : ' checked="checked"') + ' value="plain" />' + _translate('Plain') + '</label>\
+                        + (this.statement.objectDatatype() ? '' : ' checked="checked"') + ' value="plain" />Plain</label>\
                 <label><input type="radio" class="radio" name="literal-type-' + this.ID + '"'
-                        + (this.statement.objectDatatype() ? ' checked="checked"' : '') + ' value="typed" />' + _translate('Typed') + '</label>\
+                        + (this.statement.objectDatatype() ? ' checked="checked"' : '') + ' value="typed" />Typed</label>\
             </div>\
             <div class="rdfauthor-container util ' + this.disclosureID + '" style="display:none">\
                 <div class="literal-lang"' + (this.statement.objectDatatype() ? ' style="display:none"' : '') + '>\
-                    <label for="literal-lang-' + this.ID + '">' + _translate('Language') + ':\
+                    <label for="literal-lang-' + this.ID + '">Language:\
                         <select id="literal-lang-' + this.ID + '" name="literal-lang-' + this.ID + '">\
                             ' + this.makeOptionString(this.languages, this.statement.objectLang()) + '\
                         </select>\
@@ -293,7 +360,7 @@ RDFauthor.registerWidget({
                 </div>\
             </div>';
 
-        return markup;
+        return areaMarkup;
     },
 
     submit: function () {
@@ -331,15 +398,21 @@ RDFauthor.registerWidget({
                     } else if (null !== this.datatype()) {
                         objectOptions.datatype = this.datatype();
                     }
+                    if (this.valType() === "uri") {
+                        var submitValue = '<' + this.value() + '>';
+                    }
+                    else {
+                        var submitValue = this.value();
+                    }
                     var newStatement = this.statement.copyWithObject({
-                        value: this.value(),
+                        value: submitValue,
                         options: objectOptions,
-                        type: 'literal'
+                        type: this.valType()
                     });
                     databank.add(newStatement.asRdfQueryTriple());
                 } catch (e) {
                     var msg = e.message ? e.message : e;
-                    alert('Could not save literal for the following reason: \n' + msg);
+                    alert('Could not save triple for the following reason: \n' + msg);
                     return false;
                 }
             }
@@ -384,14 +457,28 @@ RDFauthor.registerWidget({
         return null;
     },
 
+    text: function () {
+        return this.element().text();
+    },
+
+    valType: function () {
+        return this.dropValues[this.element().val()].type;
+    },
+
     value: function () {
-        var value = this.element().val();
-        if (String(value).length > 0) {
+        var value = this.dropValues[this.element().val()].value;
+        /* Formbuilder: We don't want properties to be deleted just because
+           the literal value is empty.
+           Only exception: When resources are created, empty fields should not
+           be initialized empty but not at all.
+        */
+        if (this.options.workingMode != 'class') {
             return value;
         }
-        else {
-            return null;
+        else if (String(value).length > 0) {
+            return value;
         }
+        return null;
     },
 
     _init: function () {
@@ -401,48 +488,12 @@ RDFauthor.registerWidget({
             self.element()
                 .elastic()
                 .shiftenter({
-                    hint: _translate('literalHint'),
+                    hint: 'Shift+Enter for line break - Enter for submitting changes',
                     onReturn: function() {
                         RDFauthor.commit();
                     }
                 });
         }
     }
-}, {
-        name: '__LITERAL__',
-        callback: function () {
-
-            // register new datatype sysont:Markdown
-            $.typedValue.types['http://ns.ontowiki.net/SysOnt/Markdown'] = {
-                 regex: /.*/,
-                 strip: false,
-                 /** @ignore */
-                 value: function (v, options) {
-                   var opts = $.extend({}, $.typedValue.defaults, options);
-                   return v;
-                 }
-            };
-            // register new datatype sysont:HTML
-            $.typedValue.types['http://ns.ontowiki.net/SysOnt/HTML'] = {
-                 regex: /.*/,
-                 strip: false,
-                 /** @ignore */
-                 value: function (v, options) {
-                   var opts = $.extend({}, $.typedValue.defaults, options);
-                   return v;
-                 }
-            };
-            // register new datatype xsd:time
-            $.typedValue.types['http://www.w3.org/2001/XMLSchema#time'] = {
-                regex: /^.*$/,
-                strip: true,
-                /** @ignore */
-                value: function (v, options) {
-                  var opts = $.extend({}, $.typedValue.defaults, options);
-                  return v;
-                }
-            };
-
-        }
-    }
+}, __config['widgets']['dropdown']['hook']
 );
