@@ -121,7 +121,7 @@ var __config = {
                 name: 'property',
                 values: ['http://xmlns.com/foaf/0.1/mbox', 
                          'http://rdfs.org/sioc/ns#email', 
-                         'http://http://www.w3.org/2006/vcard/ns#hasEmail', 
+                         'http://www.w3.org/2006/vcard/ns#hasEmail', 
                          'http://usefulinc.com/ns/doap#mailing-list']
             }
         },
