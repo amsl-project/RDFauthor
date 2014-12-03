@@ -2261,7 +2261,8 @@ RDFauthor = (function($) {
          * Query for predicate info and update the cache, which will be used for 
          * choosing the right widget.
          */
-        updateInfoPredicate: function (statement, async=true) {
+        updateInfoPredicate: function (statement, async) {
+            if(typeof(async)==='undefined') async = true;
             var self = this;
             // jquery deferred object
             var dfd = $.Deferred();

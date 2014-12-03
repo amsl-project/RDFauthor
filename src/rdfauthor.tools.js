@@ -1,6 +1,7 @@
 var RDFAuthorTools = {
 
-    updateStatus: function (element, success, deleted = false) {
+    updateStatus: function (element, success, deleted) {
+        if(typeof(deleted)==='undefined') deleted = false;
         if (success) {
             html = ' <span class="update-status update-OK">&#x2713; OK</span>';
         }
