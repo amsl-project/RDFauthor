@@ -259,8 +259,10 @@ RDFauthor.registerWidget({
     },
 
     localName: function (uri) {
-        if (uri in this._additionalInfo && this._additionalInfo[uri]["label"] != undefined) {
-            return this._additionalInfo[uri]["label"];
+        if (typeof(this._additionalInfo) !== 'undefined') {
+            if (uri in this._additionalInfo && typeof(this._additionalInfo[uri]["label"]) !== 'undefined') {
+                return this._additionalInfo[uri]["label"];
+            }
         }
         else {
             var s = String(uri);
@@ -307,9 +309,9 @@ RDFauthor.registerWidget({
         var everywhereInUse = {};
         // request properties in use
         self._additionalInfo = undefined;
-        if (self._addPropertyValues != undefined) {
+        if (typeof(self._addPropertyValues) !== 'undefined') {
             self._templateProperties = self._addPropertyValues;
-            if (self._addOptionalPropertyValues != undefined) {
+            if (typeof(self._addOptionalPropertyValues) !== 'undefined') {
                 self._templateProperties = $.extend({}, self._templateProperties, self._addOptionalPropertyValues);
             }
         }
@@ -319,16 +321,19 @@ RDFauthor.registerWidget({
                 self._templateProperties = $.extend({}, self._templateProperties, $("#template-optional-properties").data('properties'));
             }
         }
-        self._additionalInfo = [];
-        for (var k in self._templateProperties) {
-            self._additionalInfo[k] = {};
-            for (var property in self._templateProperties[k]) {
-                if (self._templateProperties[k].hasOwnProperty(property)) {
-                    self._additionalInfo[k][property] = self._templateProperties[k][property];
+
+        if (self._templateProperties.length > 0) {
+            self._additionalInfo = [];
+            for (var k in self._templateProperties) {
+                self._additionalInfo[k] = {};
+                for (var property in self._templateProperties[k]) {
+                    if (self._templateProperties[k].hasOwnProperty(property)) {
+                        self._additionalInfo[k][property] = self._templateProperties[k][property];
+                    }
                 }
             }
         }
-        if (self._additionalInfo != undefined) {
+        if (typeof(self._additionalInfo) !== 'undefined') {
             for (var k in self._additionalInfo) {
                if (self._additionalInfo[k] === '') {
                    delete self._additionalInfo[k];
@@ -356,9 +361,9 @@ RDFauthor.registerWidget({
                 callbackSuccess: function(data) {
                     var results = data.results.bindings;
                     for (var i in results) {
-                        if( (typeof(results[i].resourceUri) != "undefined")  && (i != "last") ) {
+                        if( (typeof(results[i].resourceUri) !== "undefined")  && (i != "last") ) {
                             var resourceUri = results[i].resourceUri.value;
-                            (typeof(results[i].label) != "undefined") &&
+                            (typeof(results[i].label) !== "undefined") &&
                             (results[i].label != null)              ? everywhereInUse[resourceUri] = results[i].label.value
                                                                     : everywhereInUse[resourceUri] = null;
                         }
