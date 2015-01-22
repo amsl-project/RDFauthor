@@ -322,7 +322,7 @@ RDFauthor.registerWidget({
             }
         }
 
-        if (self._templateProperties.length > 0) {
+        if (typeof(self._templateProperties) !== 'undefined') {
             self._additionalInfo = [];
             for (var k in self._templateProperties) {
                 self._additionalInfo[k] = {};
