@@ -164,13 +164,8 @@ div.spinner-wrapper {
     min-width: 20em;
     font-size: 1em;
     max-width: 20em;
-    background: #f9f9f9;
     color: #000;
     display: inline-block;
-    border-left-color: #888;
-    border-top-color: #888;
-    border-right-color: #ddd;
-    border-bottom-color: #ddd;
     border-style: solid;
     border-width: 1px;
     margin-bottom: 0.5em;
