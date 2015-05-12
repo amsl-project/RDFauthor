@@ -121,10 +121,6 @@ function PopoverController(options) {
         $('.modal-wrapper').remove();
     }
 
-    function addUpdateScreen() {
-        $('body').append("<div class='modal-wrapper spinner-wrapper'>" + '</div>');
-    }
-
     jQuery(document).bind('keydown.view', handleKeybordEvent);
 
     // view initialization
@@ -140,12 +136,8 @@ function PopoverController(options) {
         }
 
         jQuery('#rdfauthor-button-submit').die().live('click', function () {
-            var submit = RDFauthor.commit();
-            if (submit) {
-                RDFauthor.commit();
-                removePopoverView();
-                addUpdateScreen();
-            }
+            RDFauthor.commit();
+            removePopoverView();
         });
 
         jQuery('#rdfauthor-button-cancel').die().live('click', function () {

@@ -22,12 +22,6 @@ div.modal-wrapper {
     z-index: 1095;
 }
 
-div.spinner-wrapper {
-    background-image: url('./../img/spinner_big.gif');
-    background-repeat: no-repeat;
-    background-position: center center;
-}
-
 #rdfauthor-view {
     /* taken from div.window */
     font-size: 12px;
@@ -491,13 +485,9 @@ div.spinner-wrapper {
     color: #FF0000;
 }
 
-.suggestion {
-    color: #FF0000;
-    font-style: italic;
-}
-
 .ui-autocomplete {
     -webkit-box-shadow: 0 1px 3px #aaa;
     -moz-box-shadow: 0 1px 3px #aaa;
     box-shadow: 0 1px 3px #aaa;
 }
+
