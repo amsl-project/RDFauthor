@@ -157,8 +157,8 @@ var __config = {
             'hook' : [
             {
                 name: 'property',
-                values: ['http://purl.org/dc/terms/description',
-                         'http://purl.org/dc/elements/1.1/description',
+                values: [//'http://purl.org/dc/terms/description',
+                         //'http://purl.org/dc/elements/1.1/description',
                          'http://www.w3.org/2004/02/skos/core#note',
                          'http://www.w3.org/2004/02/skos/core#editorialNote',
                          'http://ns.ontowiki.net/SysOnt/Site/content']
