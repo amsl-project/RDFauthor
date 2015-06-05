@@ -328,7 +328,11 @@ RDFauthor.registerWidget({
                 self._additionalInfo[k] = {};
                 for (var property in self._templateProperties[k]) {
                     if (self._templateProperties[k].hasOwnProperty(property)) {
-                        self._additionalInfo[k][property] = self._templateProperties[k][property];
+                        if (self._templateProperties[k][property] != 'http://www.w3.org/2001/XMLSchema#string') {
+                            self._additionalInfo[k][property] = self._templateProperties[k][property];
+                        } else {
+                            self._additionalInfo[k][property] = null
+                        }
                     }
                 }
             }
@@ -340,7 +344,7 @@ RDFauthor.registerWidget({
                    everywhereInUse[k] = null;
                }
                else {
-                  if (self._additionalInfo[k]["label"] != undefined) {
+                  if (typeof(self._additionalInfo[k]["label"]) != 'undefined') {
                       everywhereInUse[k] = self._additionalInfo[k]["label"];
                   }
                   else {
