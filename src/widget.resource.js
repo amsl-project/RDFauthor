@@ -489,7 +489,8 @@ RDFauthor.registerWidget({
 
             for (var i = 0; i < this.searchResults.length; i++) {
                 var current = this.searchResults[i];
-                if (undefined !== current) {
+                // Disable auto-generated URIs by checking partialResult array
+                if (undefined !== current && partialResult.length !== 0) {
                     for (var j = 0; j < current.length; j++) {
                         if (!(current[j]['value'] in uriDict)) {
                             combinedResults.push(current[j]);
