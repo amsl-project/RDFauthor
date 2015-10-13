@@ -90,6 +90,7 @@ RDFauthor.registerWidget({
             <div class="rdfauthor-container resource-value">\
                 <input type="hidden" id="property-input-' + this.ID + '" name="propertypicker" class="text resource-edit-input" />\
             </div>';
+
             var propertyPicker = '\
                 <div id="propertypicker" class="window ui-draggable ui-resizable">\
                   <h1 class="title">' + _translate('Suggested Properties') + '</h1>\
@@ -103,7 +104,7 @@ RDFauthor.registerWidget({
                     <input id="filterProperties" autocomplete="off" type="text" \
                            class="text inner-label width99" style="margin: 5px 5px 0px 0px;"/>\
                     <ul class="bullets-none separated">\
-                      <li>\
+                      <li id="elsewherePropertiesLi">\
                         <h1 class="propertyHeadline">\
                           <div class="has-contextmenu-area">\
                             <div class="contextmenu">\
@@ -133,7 +134,7 @@ RDFauthor.registerWidget({
                           </ul>\
                         </div>\
                       </li>\
-                      <li>\
+                      <li id="generalPropertiesLi">\
                         <h1 class="propertyHeadline">\
                           <div class="has-contextmenu-area">\
                             <div class="contextmenu">\
@@ -526,8 +527,10 @@ RDFauthor.registerWidget({
                     }
                     var templateCount = Object.size(self._templateProperties);
                     if (templateCount > 0) {
-                        $('#templateCount').html(Object.size(self._templateProperties));
+                        $('#templateCount').html(templateCount);
                         $('#templatePropertiesLi').removeAttr('style');
+                        $('#generalPropertiesLi').hide();
+                        $('#elsewherePropertiesLi').hide();
                     }
 
                     // add general applicable to dom
