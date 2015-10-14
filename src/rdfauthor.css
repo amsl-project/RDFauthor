@@ -30,11 +30,12 @@ div.modal-wrapper {
     background-color: #f3f3f3;
     margin: 1em 0.5em;
     border: solid 1px #666;
-    width: auto;
 
     /* taken from div.versatile */
     position: absolute;
-    width: 48em;
+    width: 80vw;
+    min-width: 48em;
+    max-width: 100em;
     z-index: 1099;
 
     /* shadow */

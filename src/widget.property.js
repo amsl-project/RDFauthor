@@ -56,7 +56,7 @@ RDFauthor.registerWidget({
         }
 
         // jQuery UI styles
-        RDFauthor.loadStylesheet(RDFAUTHOR_BASE + 'libraries/jquery.ui.autocomplete.css');
+        //RDFauthor.loadStylesheet(RDFAUTHOR_BASE + 'libraries/jquery.ui.autocomplete.css');
 
         // load stylesheets
         RDFauthor.loadStylesheet(RDFAUTHOR_BASE + 'src/widget.property.css');
