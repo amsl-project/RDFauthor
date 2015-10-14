@@ -522,8 +522,22 @@ RDFauthor.registerWidget({
                     }
                     $('#suggestedInUseCount').html(Object.size(everywhereInUse));
 
-                    for (var resourceUri in self._templateProperties) {
-                        $('#templateProperties ul').append(self._listProperty(resourceUri,self._templateProperties[resourceUri]['label']));
+                    // sort suggested template properties alphabetical for display
+                    function SortByName(a, b){
+                        var aName = a[1].label.toLowerCase();
+                        var bName = b[1].label.toLowerCase();
+                        return ((aName < bName) ? -1 : ((aName > bName) ? 1 : 0));
+                    }
+
+                    var sortable = [];
+                    for (var resourceUri in self._templateProperties)
+                        sortable.push([resourceUri, self._templateProperties[resourceUri]])
+
+                    sortable.sort(SortByName)
+
+                    for (var i = 0; i < sortable.length; ++i) {
+                        var elem = sortable[i];
+                        $('#templateProperties ul').append(self._listProperty(elem[0], elem[1].label));
                     }
                     var templateCount = Object.size(self._templateProperties);
                     if (templateCount > 0) {
