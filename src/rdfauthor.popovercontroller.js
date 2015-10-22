@@ -69,12 +69,27 @@ function PopoverController(options) {
 
     function getContent() {
         // self._options.title
-        var parts = self._options.title.split('http');
-        var action = parts[0];
-        parts = parts[parts.length - 1].split('/');
-        var shorttitle = parts[parts.length - 1];
+        var parts = self._options.title.split('http:');
+        var start = parts[0];
+        parts = parts[1].split(' ');
+        var uri = 'http:'+ parts[0];
+        parts.shift();
+        var end = parts.join(' ');
+        var label = '';
+        var query = 'SELECT ?label WHERE { <' + uri + '> <http://www.w3.org/2000/01/rdf-schema#label> ?label . } LIMIT 1';
+        RDFauthor.queryGraph(RDFAUTHOR_DEFAULT_GRAPH,query,{
+            callbackSuccess: function (data) {
+                if (data['results']['bindings'].length != 0) {
+                    label = data['results']['bindings'][0]['label'].value;
+                }
+            },
+            callbackError: function () {
+               label = uri;
+            },
+            async: false
+        });
         html = '\
-            <h2 class="title">' + action + ' ' + shorttitle + '</h2>\
+            <h2 class="title">' + start + ' ' + label + ' ' + end + '</h2>\
             <div class="' + self._options.contentContainerClass + '">\
             </div>' + getButtons() + '<div style="clear:both"></div>';
 
