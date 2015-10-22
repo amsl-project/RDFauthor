@@ -68,8 +68,13 @@ function PopoverController(options) {
     };
 
     function getContent() {
+        // self._options.title
+        var parts = self._options.title.split('http');
+        var action = parts[0];
+        parts = parts[parts.length - 1].split('/');
+        var shorttitle = parts[parts.length - 1];
         html = '\
-            <h2 class="title">' + self._options.title + '</h2>\
+            <h2 class="title">' + action + ' ' + shorttitle + '</h2>\
             <div class="' + self._options.contentContainerClass + '">\
             </div>' + getButtons() + '<div style="clear:both"></div>';
 
