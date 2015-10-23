@@ -68,7 +68,6 @@ function PopoverController(options) {
     };
 
     function getContent() {
-        // self._options.title
         var parts = self._options.title.split('http:');
         var start = parts[0];
         parts = parts[1].split(' ');
@@ -76,7 +75,7 @@ function PopoverController(options) {
         parts.shift();
         var end = parts.join(' ');
         var label = '';
-        var query = 'SELECT ?label WHERE { <' + uri + '> <http://www.w3.org/2000/01/rdf-schema#label> ?label . } LIMIT 1';
+        var query = 'SELECT ?label WHERE { <' + uri + '> <http://www.w3.org/2000/01/rdf-schema#label> ?label FILTER(LANG(?label) = "' + RDFAUTHOR_LANGUAGE + '") } LIMIT 1';
         RDFauthor.queryGraph(RDFAUTHOR_DEFAULT_GRAPH,query,{
             callbackSuccess: function (data) {
                 if (data['results']['bindings'].length != 0) {
