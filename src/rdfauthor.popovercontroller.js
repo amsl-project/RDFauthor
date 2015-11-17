@@ -68,31 +68,43 @@ function PopoverController(options) {
     };
 
     function getContent() {
-        var parts = self._options.title.split('http:');
-        var start = parts[0];
-        parts = parts[1].split(' ');
-        var uri = 'http:'+ parts[0];
-        parts.shift();
-        var end = parts.join(' ');
-        var label = '';
-        var query = 'SELECT ?label WHERE { <' + uri + '> <http://www.w3.org/2000/01/rdf-schema#label> ?label FILTER(LANG(?label) = "' + RDFAUTHOR_LANGUAGE + '") } LIMIT 1';
-        RDFauthor.queryGraph(RDFAUTHOR_DEFAULT_GRAPH,query,{
-            callbackSuccess: function (data) {
-                if (data['results']['bindings'].length != 0) {
-                    label = data['results']['bindings'][0]['label'].value;
-                }
-            },
-            callbackError: function () {
-               label = uri;
-            },
-            async: false
-        });
-        html = '\
-            <h2 class="title">' + start + ' ' + label + ' ' + end + '</h2>\
+        var title = self._options.title;
+        /* little dirty work around:
+        In case that the tile contains a URL the URL is replaced by the label considering the actual selected language.
+        This works exactly for one URL in the title.
+        If no URL is found the title gets displayed as is.
+        */
+        var parts = title.split('http://');
+        if(parts.length > 1) {
+            var start = parts[0];
+            parts = parts[1].split(' ');
+            var uri = 'http://' + parts[0];
+            parts.shift();
+            var end = parts.join(' ');
+            var label = '';
+            var query = 'SELECT ?label WHERE { <' + uri + '> <http://www.w3.org/2000/01/rdf-schema#label> ?label FILTER(LANG(?label) = "' + RDFAUTHOR_LANGUAGE + '") } LIMIT 1';
+            RDFauthor.queryGraph(RDFAUTHOR_DEFAULT_GRAPH, query, {
+                callbackSuccess: function (data) {
+                    if (data['results']['bindings'].length != 0) {
+                        label = data['results']['bindings'][0]['label'].value;
+                    }
+                },
+                callbackError: function () {
+                    label = uri;
+                },
+                async: false
+            });
+            html = '<h2 class="title">' + start + ' ' + label + ' ' + end + '</h2>\
             <div class="' + self._options.contentContainerClass + '">\
             </div>' + getButtons() + '<div style="clear:both"></div>';
 
-        return html;
+            return html;
+        }else{
+            html = '<h2 class="title">' + title + '</h2>\
+            <div class="' + self._options.contentContainerClass + '">\
+            </div>' + getButtons() + '<div style="clear:both"></div>';
+            return html;
+        }
     };
 
     function getButtons() {
