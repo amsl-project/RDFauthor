@@ -158,9 +158,9 @@
 
                     } else {
                         event.preventDefault();
-                        if (opts.onReturn) {
-                            opts.onReturn();
-                        }
+                        //if (opts.onReturn) {
+                        //    opts.onReturn();
+                        //}
                         //$.shiftenter.log('Got Enter, submitting');
                         // Submit form
                         // $el.blur();
