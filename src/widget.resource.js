@@ -612,6 +612,12 @@ RDFauthor.registerWidget({
                             RDFauthor.commit();
                         });
                     }
+                    else {
+                        self.element().data('uri', '');
+                        self.element().data('label', '');
+                        self.element().data('hasLabel', false);
+                        self.element().addClass('submit-failure');
+                    }
                 }
             });
 

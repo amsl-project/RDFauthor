@@ -167,7 +167,8 @@ function PopoverController(options) {
         }
 
         jQuery('#rdfauthor-button-submit').die().live('click', function () {
-            RDFauthor.commit();
+            if (!RDFauthor.commit())
+                return;
             removePopoverView();
         });
 
