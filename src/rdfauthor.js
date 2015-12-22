@@ -970,17 +970,15 @@ RDFauthor = (function($) {
                         for (var i = 0, length = triples.length; i < length; i++) {
                             // init statement
                             var statement = new Statement(triples[i], {'graph': graph});
-                            
                             // handle object label callback
                             var element = RDFauthor.elementForStatement(statement);
                             var label = null;
                             if (typeof _options.objectLabel == 'function') {
                                 label = _options.objectLabel(element);
                             }
-                            
+
                             // init statement
                             var statement2 = new Statement(triples[i], {'graph': graph, objectLabel: label, 'title': statement['_predicate']['label']});
-                            
                             view.addWidget(statement2);
                         }
                     }
@@ -1840,7 +1838,7 @@ RDFauthor = (function($) {
             var types        = this.infoForPredicate(predicateURI, 'type');
             var owlOneOf     = this.infoForPredicate(predicateURI, 'owlOneOf');
             var displayAs    = this.infoForPredicate(predicateURI, 'displayAs');
-            
+
             var options = { workingMode : _options.workingMode };
 
             // local widget selection

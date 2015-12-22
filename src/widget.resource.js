@@ -203,6 +203,7 @@ RDFauthor.registerWidget({
                     }
                 }
                 else if (this.value() === false) {
+                    alert('Could not save resource for the following reason: \n' + 'Invalid Uri');
                     return false;
                 }
                 else {
@@ -604,6 +605,7 @@ RDFauthor.registerWidget({
                             self.element().data('uri', self.element().val());
                             self.element().data('label', label);
                             self.element().data('hasLabel', hasLabel);
+                            self.element().removeClass('submit-failure');
                             if (hasLabel) {
                                 self.element().val(label);
                                 self.element().removeClass('resource-autocomplete-uri')
@@ -613,9 +615,6 @@ RDFauthor.registerWidget({
                         });
                     }
                     else {
-                        self.element().data('uri', '');
-                        self.element().data('label', '');
-                        self.element().data('hasLabel', false);
                         self.element().addClass('submit-failure');
                     }
                 }

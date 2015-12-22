@@ -16,7 +16,14 @@ RDFauthor.registerWidget({
         this._shiftenter  = false;
         this._elastic     = false;
         this.languages.unshift('');
-        
+
+        this.raw_statement = {datatype: ''};
+        // HACK: this object tracks the data type information for this statement
+        if (RDFAUTHOR_DATATYPES_FIX[this.statement.subjectURI()] !== undefined &&
+            RDFAUTHOR_DATATYPES_FIX[this.statement.subjectURI()][this.statement.predicateURI()] !== undefined) {
+            this.raw_statement.datatype = RDFAUTHOR_DATATYPES_FIX[this.statement.subjectURI()][this.statement.predicateURI()][0].datatype;
+        }
+
         var self = this;
 
         //load shiftenter plugin
@@ -256,7 +263,7 @@ RDFauthor.registerWidget({
             readonly = 'readonly="true"';
         }
 
-        var isBoolean = this.statement.objectDatatype() == this.bool ? true : false;
+        var isBoolean = this.raw_statement.datatype == this.bool ? true : false;
         var areaMarkup = '\
             <div class="rdfauthor-container ' + areaConfig.containerClass + '" style="width:100%">\
                 <div class="notboolean" style="' + ( isBoolean ? 'display:none;' : 'display:block;' ) + '">\
@@ -277,22 +284,22 @@ RDFauthor.registerWidget({
             ' + areaMarkup + '\
             <div class="rdfauthor-container literal-type util ' + this.disclosureID + '" style="display:none">\
                 <label><input type="radio" class="radio" name="literal-type-' + this.ID + '"'
-                        + (this.statement.objectDatatype() ? '' : ' checked="checked"') + ' value="plain" />' + _translate('Plain') + '</label>\
+                        + (this.raw_statement.datatype ? '' : ' checked="checked"') + ' value="plain" />' + _translate('Plain') + '</label>\
                 <label><input type="radio" class="radio" name="literal-type-' + this.ID + '"'
-                        + (this.statement.objectDatatype() ? ' checked="checked"' : '') + ' value="typed" />' + _translate('Typed') + '</label>\
+                        + (this.raw_statement.datatype ? ' checked="checked"' : '') + ' value="typed" />' + _translate('Typed') + '</label>\
             </div>\
             <div class="rdfauthor-container util ' + this.disclosureID + '" style="display:none">\
-                <div class="literal-lang"' + (this.statement.objectDatatype() ? ' style="display:none"' : '') + '>\
+                <div class="literal-lang"' + (this.raw_statement.datatype ? ' style="display:none"' : '') + '>\
                     <label for="literal-lang-' + this.ID + '">' + _translate('Language') + ':\
                         <select id="literal-lang-' + this.ID + '" name="literal-lang-' + this.ID + '">\
                             ' + this.makeOptionString(this.languages, this.statement.objectLang()) + '\
                         </select>\
                     </label>\
                 </div>\
-                <div class="literal-datatype"' + (this.statement.objectDatatype() ? '' : ' style="display:none"') + '>\
+                <div class="literal-datatype"' + (this.raw_statement.datatype ? '' : ' style="display:none"') + '>\
                     <label>Datatype:\
                         <select id="literal-datatype-' + this.ID + '" name="literal-datatype-' + this.ID + '">\
-                            ' + this.makeOptionString(this.datatypes, this.statement.objectDatatype(), true) + '\
+                            ' + this.makeOptionString(this.datatypes, this.raw_statement.datatype, true) + '\
                         </select>\
                     </label>\
                 </div>\

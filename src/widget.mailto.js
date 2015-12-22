@@ -83,6 +83,12 @@ RDFauthor.registerWidget({
             }
 
             if (!this.removeOnSubmit && this.value()) {
+                // abort on validation error
+                if (!this.validateLabel(this.element().val())) {
+                    alert('Could not save resource for the following reason: \n' + 'Invalid input for datatype email!');
+                    return false;
+                }
+
                 try {
                     var newStatement = this.statement.copyWithObject({
                         value: '<' + this.value() + '>',
