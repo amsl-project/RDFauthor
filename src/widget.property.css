@@ -18,6 +18,10 @@
 
 }
 
+.propertyHeadline{
+  cursor: pointer;
+}
+
 #propertypicker .title {
   cursor: move;
 }

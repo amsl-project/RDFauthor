@@ -100,7 +100,7 @@ RDFauthor.registerWidget({
                       <span class="button button-windowclose"><span>\
                     </div>\
                   </div>\
-                  <div class="content" style="height: 92%">\
+                  <div class="content" style="height: 85%">\
                     <input id="filterProperties" autocomplete="off" type="text" \
                            class="text inner-label width99" style="margin: 5px 5px 0px 0px;"/>\
                     <ul class="bullets-none separated">\
@@ -469,7 +469,7 @@ RDFauthor.registerWidget({
         label = label == null ? self.localName(resourceUri) : label;
         title = typeof(comment) != "undefined" ? comment : label;
         return '<li><a name="propertypicker" class="show-property Resource" about="'+resourceUri+'" \
-                title="' + title + '">' + label + '</a></li>';
+                title="' + title + '">' + label + '</a><input type="checkbox" name="abc" value="' + label + '" class="propertycheckbox" id="'+resourceUri+'"></li>';
     },
 
     _listPropertyAutocomplete: function (resourceUri) {
@@ -580,28 +580,23 @@ RDFauthor.registerWidget({
             }).keydown(function (e) {
                 if ((e.which === 13) && self._options.selectOnReturn) {
                     $('#propertypicker').hide();
-                    var val = jQuery(e.target).val();
-                    val = self.expandNamespace(val);
-                    self._normalizeValue(val);
+                    var el = jQuery(e.target).val();
+                    var jsonArray = JSON.parse(el);
+                    $.each(jsonArray, function(index, element){
 
-                    /*
-                    var splits = val.split(':', 2);
-                    if (splits.length >= 2 && !self.isURI(val)) {
-                        if (splits[0] in self._namespaces) {
-                            self.selectedResource = self._namespaces[splits[0]] + splits[1];
-                            self.selectedResourceLabel = splits[1];
+                        var selectedResource      = self.expandNamespace(element);
+                        var selectedResourceLabel = self.localName(selectedResource);
+
+                        if ((self._additionalInfo != undefined) && (self.selectedResource in self._additionalInfo) && (self.selectedResource[self._additionalInfo] !== '') && ("datatype" in self._additionalInfo[self.selectedResource])) {
+                            self._options.selectionCallback(selectedResource, selectedResourceLabel, self._additionalInfo[self.selectedResource]["datatype"]);
                         }
-                    }
-                    */
+                        else {
+                            self._options.selectionCallback(selectedResource, selectedResourceLabel);
+                        }
+                        // prevent newline in new widget field
+                        e.preventDefault();
+                    });
 
-                    if ((self._additionalInfo != undefined) && (self.selectedResource in self._additionalInfo) && (self.selectedResource[self._additionalInfo] !== '') && ("datatype" in self._additionalInfo[self.selectedResource])) {
-                        self._options.selectionCallback(self.selectedResource, self.selectedResourceLabel, self._additionalInfo[self.selectedResource]["datatype"]);
-                    }
-                    else {
-                        self._options.selectionCallback(self.selectedResource, self.selectedResourceLabel);
-                    }
-                    // prevent newline in new widget field
-                    e.preventDefault();
                 } else if (e.which === 27) {
                     e.stopPropagation();
                 }
@@ -706,26 +701,55 @@ RDFauthor.registerWidget({
             });
 
             /** TOGGLE EVENT */
-            $('#propertypicker .content ul li').die('click').live('click', function(){
-                $(this).find('h1 .ui-icon')
-                       .hasClass('ui-icon-minus') ? $(this).find('h1 .ui-icon')
+            $('#propertypicker .content ul li h1 div').die('click').live('click', function(){
+                $(this).find('.ui-icon')
+                       .hasClass('ui-icon-minus') ? $(this).find('.ui-icon')
                                                            .removeClass('ui-icon-minus')
                                                            .addClass('ui-icon-plus')
-                                                  : $(this).find('h1 .ui-icon')
+                                                  : $(this).find('.ui-icon')
                                                            .removeClass('ui-icon-plus')
                                                            .addClass('ui-icon-minus');
-                $(this).find('h1').next('div').slideToggle();
+                $(this).parent().next('div').slideToggle();
             });
 
             /** CLICK EVENT ON PROPERTY */
-            $('#propertypicker a[name="propertypicker"]').live('click', function(event){
+            $('#propertypicker a[name="propertypicker"]').die('click').live('click', function(event){
                 event.preventDefault();
                 var resourceUri = $(this).attr('about');
+                var list = new Array();
+                list.push(resourceUri);
                 var keydownEvent = $.Event("keydown");
                 keydownEvent.which=13;
-                self.element().val(resourceUri).trigger(keydownEvent);
+                self.element().val(JSON.stringify(list)).trigger(keydownEvent);
                 $('.modal-wrapper-propertyselector').remove();
-            })
+                event.stopPropagation();
+            });
+
+            var submitcontainer = document.createElement('div');
+            $("#propertypicker")[0].appendChild(submitcontainer);
+            submitcontainer.setAttribute("style", "margin-left: 20px");
+            submitcontainer.setAttribute("class", "submit");
+               submitcontainer.innerHTML = '<button id="restore1" class="minibutton" name="test">OK</button>';
+            var hallo = $("#propertypicker")[0];
+            var laenge = $("#propertypicker").length;
+            var zeuch = $('#propertypicker,button[id="restore1"]').length;
+
+            $('#propertypicker button[name="test"]').die('click').live('click', function(event){
+                event.preventDefault();
+                event.stopPropagation();
+                var seletedProperties = $('#propertypicker input[name="abc"]');
+                var list = new Array();
+                seletedProperties.each(function(index, element){
+                    var checked = element.checked;
+                    if(checked) {
+                        list.push(element.getAttribute("id"));
+                    }
+                });
+                var keydownEvent = $.Event("keydown");
+                keydownEvent.which = 13;
+                self.element().val(JSON.stringify(list)).trigger(keydownEvent);
+                $('.modal-wrapper-propertyselector').remove();
+            });
         }
     },
 
