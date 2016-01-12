@@ -1838,7 +1838,12 @@ RDFauthor = (function($) {
             var types        = this.infoForPredicate(predicateURI, 'type');
             var owlOneOf     = this.infoForPredicate(predicateURI, 'owlOneOf');
             var displayAs    = this.infoForPredicate(predicateURI, 'displayAs');
+            if(datatypeURI == null) {
+                if (ranges.length > 0) {
+                    datatypeURI = ranges[0];
+                }
 
+            }
             var options = { workingMode : _options.workingMode };
 
             // local widget selection
