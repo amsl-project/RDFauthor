@@ -316,11 +316,14 @@ RDFauthor.registerWidget({
             /*
             var v = this.value();
             // */
-
+            var trimmedValue = null;
+            if(this.value() !== null){
+                trimmedValue = this.value().trim();
+            }
             var somethingChanged = (
                 this.statement.hasObject() && (
                     // existing statement should have been edited
-                    this.statement.objectValue() !== this.value() ||
+                    this.statement.objectValue() !== trimmedValue ||
                     this.statement.objectLang() !== this.lang() ||
                     this.statement.objectDatatype() !== this.datatype()
                 )
@@ -344,7 +347,7 @@ RDFauthor.registerWidget({
                         objectOptions.datatype = this.datatype();
                     }
                     var newStatement = this.statement.copyWithObject({
-                        value: this.value(),
+                        value: this.value().trim(),
                         options: objectOptions,
                         type: 'literal'
                     });
