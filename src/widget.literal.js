@@ -319,6 +319,7 @@ RDFauthor.registerWidget({
             var trimmedValue = null;
             if(this.value() !== null){
                 trimmedValue = this.value().trim();
+                trimmedValue = trimmedValue[0].toUpperCase() + trimmedValue.slice(1);
             }
             var somethingChanged = (
                 this.statement.hasObject() && (
@@ -347,7 +348,7 @@ RDFauthor.registerWidget({
                         objectOptions.datatype = this.datatype();
                     }
                     var newStatement = this.statement.copyWithObject({
-                        value: this.value().trim(),
+                        value: trimmedValue,
                         options: objectOptions,
                         type: 'literal'
                     });
