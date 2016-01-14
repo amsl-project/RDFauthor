@@ -7,82 +7,82 @@
 
 
 RDFauthor.registerWidget({
-    init: function (addPropertyValues, addOptionalPropertyValues) {
-        this._addPropertyValues = addPropertyValues || undefined;
-        this._addOptionalPropertyValues = addOptionalPropertyValues || undefined;
-        this._propertiesInUse = [];
-        this._templateProperties = [];
-        this._filterProperties = "search for properties or enter a custom property uri";
-        this._domReady     = false;
-        this._pluginLoaded = false;
-        this._initialized  = false;
-        this._autocomplete = null;
+        init: function (addPropertyValues, addOptionalPropertyValues) {
+            this._addPropertyValues = addPropertyValues || undefined;
+            this._addOptionalPropertyValues = addOptionalPropertyValues || undefined;
+            this._propertiesInUse = [];
+            this._templateProperties = [];
+            this._filterProperties = "search for properties or enter a custom property uri";
+            this._domReady = false;
+            this._pluginLoaded = false;
+            this._initialized = false;
+            this._autocomplete = null;
 
-        /* better support for datatype */
-        this._additionalInfo = [];
+            /* better support for datatype */
+            this._additionalInfo = [];
 
-        this._namespaces = jQuery.extend({
-            foaf: 'http://xmlns.com/foaf/0.1/',
-            dc:   'http://purl.org/dc/terms/',
-            owl:  'http://www.w3.org/2002/07/owl#',
-            rdf:  'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
-            rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
-            skos: 'http://www.w3.org/2004/02/skos/core#',
-            geo:  'http://www.w3.org/2003/01/geo/wgs84_pos#',
-            dbp:  'http://dbpedia.org/property/',
-            xsd:  'http://www.w3.org/2001/XMLSchema#',
-            sioc: 'http://rdfs.org/sioc/ns#'
-        }, RDFauthor.namespaces());
+            this._namespaces = jQuery.extend({
+                foaf: 'http://xmlns.com/foaf/0.1/',
+                dc: 'http://purl.org/dc/terms/',
+                owl: 'http://www.w3.org/2002/07/owl#',
+                rdf: 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+                rdfs: 'http://www.w3.org/2000/01/rdf-schema#',
+                skos: 'http://www.w3.org/2004/02/skos/core#',
+                geo: 'http://www.w3.org/2003/01/geo/wgs84_pos#',
+                dbp: 'http://dbpedia.org/property/',
+                xsd: 'http://www.w3.org/2001/XMLSchema#',
+                sioc: 'http://rdfs.org/sioc/ns#'
+            }, RDFauthor.namespaces());
 
-        /* default options */
-        this._options = jQuery.extend({
-            // Autocomplete options:
-            minChars:           3,      /* minmum chars needed to be typed before search starts */
-            delay:              1000,   /* delay in ms before search starts */
-            // Callbacks
-            selectionCallback:  null,   /* the function to be called when a new selection is made */
-            selectOnReturn:     false   /* executes selection callback if the user hits return in the search field */
-        }, this.options);
+            /* default options */
+            this._options = jQuery.extend({
+                // Autocomplete options:
+                minChars: 3, /* minmum chars needed to be typed before search starts */
+                delay: 1000, /* delay in ms before search starts */
+                // Callbacks
+                selectionCallback: null, /* the function to be called when a new selection is made */
+                selectOnReturn: false   /* executes selection callback if the user hits return in the search field */
+            }, this.options);
 
-        var self = this;
-        if (undefined === jQuery.ui.autocomplete) {
-            RDFauthor.loadScript(RDFAUTHOR_BASE + 'libraries/jquery.ui.autocomplete.js', function () {
+            var self = this;
+            if (undefined === jQuery.ui.autocomplete) {
+                RDFauthor.loadScript(RDFAUTHOR_BASE + 'libraries/jquery.ui.autocomplete.js', function () {
+                    self._pluginLoaded = true;
+                    self._init();
+                });
+            } else {
                 self._pluginLoaded = true;
                 self._init();
-            });
-        } else {
-            self._pluginLoaded = true;
-            self._init();
-        }
-
-        // jQuery UI styles
-        //RDFauthor.loadStylesheet(RDFAUTHOR_BASE + 'libraries/jquery.ui.autocomplete.css');
-
-        // load stylesheets
-        RDFauthor.loadStylesheet(RDFAUTHOR_BASE + 'src/widget.property.css');
-
-        // returns the size of an object
-        Object.size = function(obj) {
-            var size = 0, key;
-            for (key in obj) {
-                size++;
             }
-            return size;
-        }
 
-    },
+            // jQuery UI styles
+            //RDFauthor.loadStylesheet(RDFAUTHOR_BASE + 'libraries/jquery.ui.autocomplete.css');
 
-    ready: function () {
-        this._domReady = true;
-        this._init();
-        this.element().trigger('click');
-    },
+            // load stylesheets
+            RDFauthor.loadStylesheet(RDFAUTHOR_BASE + 'src/widget.property.css');
 
-    element: function () {
-        return $('#property-input-' + this.ID);
-    },
+            // returns the size of an object
+            Object.size = function (obj) {
+                var size = 0, key;
+                for (key in obj) {
+                    size++;
+                }
+                return size;
+            }
 
-    markup: function () {
+        },
+
+        ready: function () {
+            this._domReady = true;
+            this._init();
+            this.element().trigger('click');
+        },
+
+        element: function () {
+            return $('#property-input-' + this.ID);
+        },
+
+        markup: function () {
             var self = this;
             var height = $(document).height();
             var width = $(document).width();
@@ -165,8 +165,8 @@ RDFauthor.registerWidget({
                     </ul>\
                  </div>\
                 </div>';
-        var modalwrapper = '<div class="modal-wrapper-propertyselector" style="width: ' + width + 'px; height: ' + height + 'px;"></div>';
-        var spinner = '<div id="spinner-propertyselector">\
+            var modalwrapper = '<div class="modal-wrapper-propertyselector" style="width: ' + width + 'px; height: ' + height + 'px;"></div>';
+            var spinner = '<div id="spinner-propertyselector">\
             <div class="bar1"></div>\
             <div class="bar2"></div>\
             <div class="bar3"></div>\
@@ -180,622 +180,644 @@ RDFauthor.registerWidget({
             <div class="bar11"></div>\
             <div class="bar12"></div>\
           </div>'
-        if( $('#propertypicker').length == 0 ) {
-            $('body').append(modalwrapper);
-            $('.modal-wrapper-propertyselector').append(propertyPicker).append(spinner);
-        }
-        return markup;
-    },
-
-    submit: function () {
-        if (this.shouldProcessSubmit()) {
-            // get databank
-            var databank   = RDFauthor.databankForGraph(this.statement.graphURI());
-            var hasChanged = (
-                this.statement.hasObject()
-                && this.statement.objectValue() !== this.value()
-                && null !== this.value()
-            );
-
-            if (hasChanged || this.removeOnSubmit) {
-                var rdfqTriple = this.statement.asRdfQueryTriple();
-                if (rdfqTriple) {
-                    databank.remove(rdfqTriple);
-                }
+            if ($('#propertypicker').length == 0) {
+                $('body').append(modalwrapper);
+                $('.modal-wrapper-propertyselector').append(propertyPicker).append(spinner);
             }
+            return markup;
+        },
 
-            if (!this.removeOnSubmit && this.value()) {
-                var self = this;
-                try {
-                    var newStatement = this.statement.copyWithObject({
-                        value: '<' + this.value() + '>',
-                        type: 'uri'
-                    });
-                    databank.add(newStatement.asRdfQueryTriple());
-                } catch (e) {
-                    var msg = e.message ? e.message : e;
-                    alert('Could not save resource for the following reason: \n' + msg);
-                    return false;
-                }
-            }
-        }
-        $('#propertypicker').remove();
-        return true;
-    },
+        submit: function () {
+            if (this.shouldProcessSubmit()) {
+                // get databank
+                var databank = RDFauthor.databankForGraph(this.statement.graphURI());
+                var hasChanged = (
+                    this.statement.hasObject()
+                    && this.statement.objectValue() !== this.value()
+                    && null !== this.value()
+                );
 
-    shouldProcessSubmit: function () {
-        var t1 = !this.statement.hasObject();
-        var t2 = null === this.value();
-        var t3 = this.removeOnSubmit;
-
-        return (!(t1 && t2) || t3);
-    },
-
-    value: function () {
-        var typedValue = this.element().val();
-        if (typedValue.length != 0) {
-            return typedValue;
-        }
-
-        return null;
-    },
-
-    generateURI: function (item, prefix) {
-        var lastChar = prefix.charAt(prefix.length - 1);
-        if (!(lastChar == '/' || lastChar == '#')) {
-            prefix += '/';
-        }
-
-        return prefix + item;
-    },
-
-    isURI: function (term) {
-        // TODO: more advanced URI check
-        return (/(https?:\/\/|mailto:|tel:)/.exec(term) !== null);
-    },
-
-    highlight: function (text, term) {
-        var highlight = text.replace(RegExp(term, 'i'), '<em>$&</em>');
-        return highlight;
-    },
-
-    localName: function (uri) {
-        if (typeof(this._additionalInfo) !== 'undefined') {
-            if (uri in this._additionalInfo && typeof(this._additionalInfo[uri]["label"]) !== 'undefined') {
-                return this._additionalInfo[uri]["label"];
-            }
-        }
-        else {
-            var s = String(uri);
-            var l;
-            if (s.lastIndexOf('#') > -1) {
-                l = s.substr(s.lastIndexOf('#') + 1);
-            } else {
-                l = s.substr(s.lastIndexOf('/') + 1);
-            }
-            return (l !== '') ? l : s;
-        }
-    },
-
-    expandNamespace: function (prefixedName) {
-        var splits = prefixedName.split(':', 2);
-        if (splits.length >= 2) {
-            if (splits[0] in this._namespaces) {
-                return this._namespaces[splits[0]] + splits[1];
-            }
-        }
-
-        return prefixedName;
-    },
-
-    _suggestions: function (callback) {
-        var self = this;
-        var subjectURI = self.statement.subjectURI();
-        var graphURI = self.statement.graphURI();
-        var prefixPattern = '\
-            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\
-            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n';
-        var selectPattern = 'DISTINCT ?resourceUri ?label\n';
-        var typePattern = '<' + subjectURI + '> a ?class .\n';
-        var classPattern = '?others a ?class .\n';
-        var uriPattern = '?others ?resourceUri ?object .\n';
-        var labelPattern = 'OPTIONAL {?resourceUri rdfs:label ?label . FILTER(langMatches(lang(?label), "' + RDFAUTHOR_LANGUAGE + '"))} .\n';
-        var query = prefixPattern + 'SELECT ' + selectPattern
-                                  + 'WHERE { \n'
-                                  + typePattern
-                                  + classPattern
-                                  + uriPattern
-                                  + labelPattern
-                                  + '}';
-        var everywhereInUse = {};
-        // request properties in use
-        self._additionalInfo = undefined;
-        if (typeof(self._addPropertyValues) !== 'undefined') {
-            self._templateProperties = self._addPropertyValues;
-            if (typeof(self._addOptionalPropertyValues) !== 'undefined') {
-                self._templateProperties = $.extend({}, self._templateProperties, self._addOptionalPropertyValues);
-            }
-        }
-        else if ($("#template-properties").length > 0) {
-            self._templateProperties = $("#template-properties").data('properties');
-            if ($("#template-optional-properties").length > 0) {
-                self._templateProperties = $.extend({}, self._templateProperties, $("#template-optional-properties").data('properties'));
-            }
-        }
-
-        if (typeof(self._templateProperties) !== 'undefined') {
-            self._additionalInfo = [];
-            for (var k in self._templateProperties) {
-                self._additionalInfo[k] = {};
-                for (var property in self._templateProperties[k]) {
-                    if (self._templateProperties[k].hasOwnProperty(property)) {
-                        if (self._templateProperties[k][property] != 'http://www.w3.org/2001/XMLSchema#string') {
-                            self._additionalInfo[k][property] = self._templateProperties[k][property];
-                        } else {
-                            self._additionalInfo[k][property] = null
-                        }
+                if (hasChanged || this.removeOnSubmit) {
+                    var rdfqTriple = this.statement.asRdfQueryTriple();
+                    if (rdfqTriple) {
+                        databank.remove(rdfqTriple);
                     }
                 }
-            }
-        }
-        if (typeof(self._additionalInfo) !== 'undefined') {
-            for (var k in self._additionalInfo) {
-               if (self._additionalInfo[k] === '') {
-                   delete self._additionalInfo[k];
-                   everywhereInUse[k] = null;
-               }
-               else {
-                  if (typeof(self._additionalInfo[k]["label"]) != 'undefined') {
-                      everywhereInUse[k] = self._additionalInfo[k]["label"];
-                  }
-                  else {
-                      everywhereInUse[k] = null;
-                  }
-               }
-            }
-            self._hasProperties(function(hasProperties){
-                $.merge(self._propertiesInUse, hasProperties);
-                for (var resourceUri in everywhereInUse) {
-                    self._propertiesInUse.push(resourceUri);
-                }
-                $.isFunction(callback) ? callback(everywhereInUse) : null;
-            })
-        }
-        else {
-            RDFauthor.queryGraph(graphURI, query, {
-                callbackSuccess: function(data) {
-                    var results = data.results.bindings;
-                    for (var i in results) {
-                        if( (typeof(results[i].resourceUri) !== "undefined")  && (i != "last") ) {
-                            var resourceUri = results[i].resourceUri.value;
-                            (typeof(results[i].label) !== "undefined") &&
-                            (results[i].label != null)              ? everywhereInUse[resourceUri] = results[i].label.value
-                                                                    : everywhereInUse[resourceUri] = null;
-                        }
-                    }
-                    self._hasProperties(function(hasProperties){
-                        $.merge(self._propertiesInUse, hasProperties);
-                        for (var resourceUri in everywhereInUse) {
-                            if ($.inArray(resourceUri, hasProperties) != -1) {
-                                delete everywhereInUse[resourceUri];
-                            } else {
-                                self._propertiesInUse.push(resourceUri);
-                            }
-                        }
-                        $.isFunction(callback) ? callback(everywhereInUse) : null;
-                    })
-                }
-            });
-        }
-    },
 
-    _hasProperties: function (callback) {
-        var self = this;
-        var subjectURI = self.statement.subjectURI();
-        var graphURI = self.statement.graphURI();
-        var prefixPattern = '\
-            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\
-            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n';
-        var selectPattern = '?resourceUri\n';
-        var uriPattern = '<' + subjectURI + '> ?resourceUri ?object .\n';
-        var query = prefixPattern + 'SELECT ' + selectPattern
-                                  + 'WHERE { \n'
-                                  + uriPattern
-                                  + '}';
-        var hasProperties = [];
-        //query
-        RDFauthor.queryGraph(graphURI, query, {
-            callbackSuccess: function(data) {
-                var results = data.results.bindings;
-                for (var i in results) {
-                    if( (results[i].resourceUri != "undefined") && (i != "last") ) {
-                        hasProperties.push(results[i].resourceUri.value);
-                    }
-                }
-                $.isFunction(callback) ? callback(hasProperties) : null;
-            },
-            callbackError: function() {
-                $.isFunction(callback) ? callback(hasProperties) : null;
-            }
-        });
-    },
-
-    _performSearch: function (requestTerm, callback) {
-        if ( typeof(requestTerm) == 'function' ) {
-            requestTerm = null;
-        }
-        var self = this;
-        var value = $('#filterProperties').val();
-        var subjectURI = self.statement.subjectURI();
-        var graphURI = self.statement.graphURI();
-        var prefixPattern = '\
-            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\
-            PREFIX owl: <http://www.w3.org/2002/07/owl#>\n';
-        var selectPattern = 'DISTINCT ?resourceUri\n';
-        var classPattern = '?resourceUri a ?class .\n';
-        var literalPattern = '?resourceUri ?p0 ?literal .\n';
-        var filter1 = 'FILTER (REGEX(?literal, "' + requestTerm + '", "i")). \n';
-        var filter2 = 'FILTER ( ( ( (sameTerm(?class,owl:DatatypeProperty)) || (sameTerm(?class,owl:ObjectProperty)) ) || \
-                                (sameTerm(?class, rdf:Property)) ) || \
-                                (sameTerm(?class, owl:AnnotationProperty)) ).\n';
-        var query = prefixPattern + 'SELECT ' + selectPattern
-                                  + 'WHERE { \n'
-                                  + classPattern
-                                  + literalPattern
-                                  + filter1
-                                  + filter2
-                                  + '}';
-        //query
-        RDFauthor.queryGraph(graphURI, query, {
-            callbackSuccess: function(data) {
-                var results = data.results.bindings;
-                var queryResult = [];
-                for (var i in results) {
-                    if (typeof results[i].resourceUri == 'object') {
-                        queryResult.push(results[i].resourceUri.value);
-                    }
-                }
-                $.isFunction(callback) ? callback(queryResult) : null;
-            },
-            callbackError: function() {
-                $.isFunction(callback) ? callback() : null;
-            }
-        });
-
-    },
-
-    _listProperty: function (resourceUri,label,comment) {
-        var self = this;
-        label = label == null ? self.localName(resourceUri) : label;
-        title = typeof(comment) != "undefined" ? comment : label;
-        return '<li><a name="propertypicker" class="show-property Resource" about="'+resourceUri+'" \
-                title="' + title + '">' + label + '</a><input type="checkbox" name="abc" value="' + label + '" class="propertycheckbox" id="'+resourceUri+'"></li>';
-    },
-
-    _listPropertyAutocomplete: function (resourceUri) {
-        var self = this;
-        label = self.localName(resourceUri);
-        return '<li><a style="line-height:0.8em !important;">\
-                <span style="font-size: 15px;">' + label + '</span><br/>\
-                <span style="font-size:10px;">' + resourceUri + '</span></li>';
-    },
-
-    _normalizeValue: function (value) {
-        if (!this.selectedResource) {
-            this.selectedResource      = this.expandNamespace(value);
-            this.selectedResourceLabel = this.localName(this.selectedResource);
-        }
-    },
-
-    _validateURI: function (uri) {
-        var uriRE = new RegExp (
-            /^([a-zA-Z][a-zA-Z0-9+-.]*):((\/\/(((([a-zA-Z0-9\-._~!$&'()*+,;=':]|(%[0-9a-fA-F]{2}))*)@)?((\[((((([0-9a-fA-F]{1,4}:){6}|(::([0-9a-fA-F]{1,4}:){5})|(([0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:){4})|((([0-9a-fA-F]{1,4}:)?[0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:){3})|((([0-9a-fA-F]{1,4}:){0,2}[0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:){2})|((([0-9a-fA-F]{1,4}:){0,3}[0-9a-fA-F]{1,4})?::[0-9a-fA-F]{1,4}:)|((([0-9a-fA-F]{1,4}:){0,4}[0-9a-fA-F]{1,4})?::))((([0-9a-fA-F]{1,4}):([0-9a-fA-F]{1,4}))|(([0-9]|(1[0-9]{2})|(2[0-4][0-9])|(25[0-5]))\.([0-9]|(1[0-9]{2})|(2[0-4][0-9])|(25[0-5]))\.([0-9]|(1[0-9]{2})|(2[0-4][0-9])|(25[0-5]))\.([0-9]|(1[0-9]{2})|(2[0-4][0-9])|(25[0-5])))))|((([0-9a-fA-F]{1,4}:){0,5}[0-9a-fA-F]{1,4})?::[0-9a-fA-F]{1,4})|((([0-9a-fA-F]{1,4}:){0,5}[0-9a-fA-F]{1,4})?::))|(v[0-9a-fA-F]+\.[a-zA-Z0-9\-._~!$&'()*+,;=':]+))\])|(([0-9]|(1[0-9]{2})|(2[0-4][0-9])|(25[0-5]))\.([0-9]|(1[0-9]{2})|(2[0-4][0-9])|(25[0-5]))\.([0-9]|(1[0-9]{2})|(2[0-4][0-9])|(25[0-5]))\.([0-9]|(1[0-9]{2})|(2[0-4][0-9])|(25[0-5])))|(([a-zA-Z0-9\-._~!$&'()*+,;=']|(%[0-9a-fA-F]{2}))*))(:[0-9]*)?)((\/([a-zA-Z0-9\-._~!$&'()*+,;=':@]|(%[0-9a-fA-F]{2}))*)*))|(\/?(([a-zA-Z0-9\-._~!$&'()*+,;=':@]|(%[0-9a-fA-F]{2}))+(\/([a-zA-Z0-9\-._~!$&'()*+,;=':@]|(%[0-9a-fA-F]{2}))*)*)?))(\?(([a-zA-Z0-9\-._~!$&'()*+,;=':@\/?]|(%[0-9a-fA-F]{2}))*))?((#(([a-zA-Z0-9\-._~!$&'()*+,;=':@\/?]|(%[0-9a-fA-F]{2}))*)))?$/i
-        );
-        return uriRE.test(uri);
-    },
-
-    _init: function () {
-        var self = this;
-        var focus;
-        if (this._pluginLoaded && this._domReady) {
-            self.element().click(function() {
-                focus = true;
-                // positioning
-                var left = self._getPosition().left + 'px !important;';
-                var top = self._getPosition().top + 'px !important';
-
-                $('#propertypicker').data('input',$(this))
-                                    .draggable({
-                                        cancel: '#propertypicker .content, #propertypicker h1 input'
-                                    }).keydown(function (e) {
-                                        if (e.which === 27) {
-                                            e.stopPropagation();
-                                            $('#propertypicker').parent().fadeOut();
-                                            self._reinitialization();
-                                        }
-                                    });
-                // query - fills the everywhere in use part
-                self._suggestions(function(everywhereInUse) {
-                    // add in use everywhere to dom
-                    for (var resourceUri in everywhereInUse) {
-                        $('#suggestedInUse ul').append(self._listProperty(resourceUri,everywhereInUse[resourceUri],resourceUri));
-                    }
-                    $('#suggestedInUseCount').html(Object.size(everywhereInUse));
-
-                    // sort suggested template properties alphabetical for display
-                    function SortByName(a, b){
-                        var aName = a[1].label.toLowerCase();
-                        var bName = b[1].label.toLowerCase();
-                        return ((aName < bName) ? -1 : ((aName > bName) ? 1 : 0));
-                    }
-
-                    var sortable = [];
-                    for (var resourceUri in self._templateProperties)
-                        sortable.push([resourceUri, self._templateProperties[resourceUri]])
-
-                    sortable.sort(SortByName)
-
-                    for (var i = 0; i < sortable.length; ++i) {
-                        var elem = sortable[i];
-                        $('#templateProperties ul').append(self._listProperty(elem[0], elem[1].label));
-                    }
-                    var templateCount = Object.size(self._templateProperties);
-                    if (templateCount > 0) {
-                        $('#templateCount').html(templateCount);
-                        $('#templatePropertiesLi').removeAttr('style');
-                        $('#generalPropertiesLi').hide();
-                        $('#elsewherePropertiesLi').hide();
-                    }
-
-                    // add general applicable to dom
-                    var generalapplicable = __propertycache['generalapplicable'];
-                    // show only new suggested general applicable properties
-                    for (var resourceUri in generalapplicable) {
-                        if($.inArray(resourceUri,self._propertiesInUse) != -1) {
-                            delete generalapplicable[resourceUri];
-                        } else {
-                            $('#suggestedGeneral ul').append(self._listProperty(resourceUri,
-                                                                                generalapplicable[resourceUri].label,
-                                                                                generalapplicable[resourceUri].comment));
-                        }
-                    }
-                    $('#suggestedGeneralCount').html(Object.size(generalapplicable));
-
-                    //TESTING
-                    self._performSearch(function(){
-
-                    });
-
-                    // ready
-                    $('#spinner-propertyselector').remove();
-                    $('#propertypicker').fadeIn('fast', function() {
-                        self._positioning();
-                        $('#filterProperties').focus().blur(function() {
-                            if ($(this).val().length == 0) {
-                                $(this).val(self._filterProperties);
-                            }
+                if (!this.removeOnSubmit && this.value()) {
+                    var self = this;
+                    try {
+                        var newStatement = this.statement.copyWithObject({
+                            value: '<' + this.value() + '>',
+                            type: 'uri'
                         });
-                    });
-                });
-            }).keydown(function (e) {
-                if ((e.which === 13) && self._options.selectOnReturn) {
-                    $('#propertypicker').hide();
-                    var el = jQuery(e.target).val();
-                    var jsonArray = JSON.parse(el);
-                    $.each(jsonArray, function(index, element){
+                        databank.add(newStatement.asRdfQueryTriple());
+                    } catch (e) {
+                        var msg = e.message ? e.message : e;
+                        alert('Could not save resource for the following reason: \n' + msg);
+                        return false;
+                    }
+                }
+            }
+            $('#propertypicker').remove();
+            return true;
+        },
 
-                        var selectedResource      = self.expandNamespace(element);
-                        var selectedResourceLabel = self.localName(selectedResource);
+        shouldProcessSubmit: function () {
+            var t1 = !this.statement.hasObject();
+            var t2 = null === this.value();
+            var t3 = this.removeOnSubmit;
 
-                        if ((self._additionalInfo != undefined) && (self.selectedResource in self._additionalInfo) && (self.selectedResource[self._additionalInfo] !== '') && ("datatype" in self._additionalInfo[self.selectedResource])) {
-                            self._options.selectionCallback(selectedResource, selectedResourceLabel, self._additionalInfo[self.selectedResource]["datatype"]);
+            return (!(t1 && t2) || t3);
+        },
+
+        value: function () {
+            var typedValue = this.element().val();
+            if (typedValue.length != 0) {
+                return typedValue;
+            }
+
+            return null;
+        },
+
+        generateURI: function (item, prefix) {
+            var lastChar = prefix.charAt(prefix.length - 1);
+            if (!(lastChar == '/' || lastChar == '#')) {
+                prefix += '/';
+            }
+
+            return prefix + item;
+        },
+
+        isURI: function (term) {
+            // TODO: more advanced URI check
+            return (/(https?:\/\/|mailto:|tel:)/.exec(term) !== null);
+        },
+
+        highlight: function (text, term) {
+            var highlight = text.replace(RegExp(term, 'i'), '<em>$&</em>');
+            return highlight;
+        },
+
+        localName: function (uri) {
+            if (typeof(this._additionalInfo) !== 'undefined') {
+                if (uri in this._additionalInfo && typeof(this._additionalInfo[uri]["label"]) !== 'undefined') {
+                    return this._additionalInfo[uri]["label"];
+                }
+            }
+            else {
+                var s = String(uri);
+                var l;
+                if (s.lastIndexOf('#') > -1) {
+                    l = s.substr(s.lastIndexOf('#') + 1);
+                } else {
+                    l = s.substr(s.lastIndexOf('/') + 1);
+                }
+                return (l !== '') ? l : s;
+            }
+        },
+
+        expandNamespace: function (prefixedName) {
+            var splits = prefixedName.split(':', 2);
+            if (splits.length >= 2) {
+                if (splits[0] in this._namespaces) {
+                    return this._namespaces[splits[0]] + splits[1];
+                }
+            }
+
+            return prefixedName;
+        },
+
+        _suggestions: function (callback) {
+            var self = this;
+            var subjectURI = self.statement.subjectURI();
+            var graphURI = self.statement.graphURI();
+            var prefixPattern = '\
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n';
+            var selectPattern = 'DISTINCT ?resourceUri ?label\n';
+            var typePattern = '<' + subjectURI + '> a ?class .\n';
+            var classPattern = '?others a ?class .\n';
+            var uriPattern = '?others ?resourceUri ?object .\n';
+            var labelPattern = 'OPTIONAL {?resourceUri rdfs:label ?label . FILTER(langMatches(lang(?label), "' + RDFAUTHOR_LANGUAGE + '"))} .\n';
+            var query = prefixPattern + 'SELECT ' + selectPattern
+                + 'WHERE { \n'
+                + typePattern
+                + classPattern
+                + uriPattern
+                + labelPattern
+                + '}';
+            var everywhereInUse = {};
+            // request properties in use
+            self._additionalInfo = undefined;
+            if (typeof(self._addPropertyValues) !== 'undefined') {
+                self._templateProperties = self._addPropertyValues;
+                if (typeof(self._addOptionalPropertyValues) !== 'undefined') {
+                    self._templateProperties = $.extend({}, self._templateProperties, self._addOptionalPropertyValues);
+                }
+            }
+            else if ($("#template-properties").length > 0) {
+                self._templateProperties = $("#template-properties").data('properties');
+                if ($("#template-optional-properties").length > 0) {
+                    self._templateProperties = $.extend({}, self._templateProperties, $("#template-optional-properties").data('properties'));
+                }
+            }
+
+            if (typeof(self._templateProperties) !== 'undefined') {
+                self._additionalInfo = [];
+                for (var k in self._templateProperties) {
+                    self._additionalInfo[k] = {};
+                    for (var property in self._templateProperties[k]) {
+                        if (self._templateProperties[k].hasOwnProperty(property)) {
+                            if (self._templateProperties[k][property] != 'http://www.w3.org/2001/XMLSchema#string') {
+                                self._additionalInfo[k][property] = self._templateProperties[k][property];
+                            } else {
+                                self._additionalInfo[k][property] = null
+                            }
+                        }
+                    }
+                }
+            }
+            if (typeof(self._additionalInfo) !== 'undefined') {
+                for (var k in self._additionalInfo) {
+                    if (self._additionalInfo[k] === '') {
+                        delete self._additionalInfo[k];
+                        everywhereInUse[k] = null;
+                    }
+                    else {
+                        if (typeof(self._additionalInfo[k]["label"]) != 'undefined') {
+                            everywhereInUse[k] = self._additionalInfo[k]["label"];
                         }
                         else {
-                            self._options.selectionCallback(selectedResource, selectedResourceLabel);
+                            everywhereInUse[k] = null;
                         }
-                        // prevent newline in new widget field
-                        e.preventDefault();
-                    });
-
-                } else if (e.which === 27) {
-                    e.stopPropagation();
+                    }
                 }
-            });
-
-            /** INPUT EVENTS */
-
-            $('#filterProperties').click(function() {
-                                      if ($(this).val() == self._filterProperties) {
-                                         $(this).val('').css('background-color', 'none');                                     
-                                      }
-                                  }).autocomplete({
-                                      minLength: 3,
-                                      delay: 500,
-                                      source: function(request, response) {
-                                          self._performSearch(request.term, function(result) {
-                                              response(result);
-                                          });
-                                          $('.ui-autocomplete:last').css({
-                                              'max-height': '300px',
-                                              'overflow-y': 'auto',
-                                              'overflow-x': 'hidden',
-                                              'padding-right': '1px'
-                                          });
-                                      },
-                                      select: function(event, ui) {
-                                          var resourceUri = ui.item.value;
-                                          var keydownEvent = $.Event("keydown");
-                                          keydownEvent.which=13;
-                                          self.element().val(resourceUri).trigger(keydownEvent);
-                                          $('.modal-wrapper-propertyselector').remove();
-                                      }
-                                  }).keyup(function(event) {
-                                      // uri check
-                                      var cssRed = 'rgb(255, 187, 187)';
-                                      if (!self._validateURI($(this).val()) && $(this).val().length != 0) {
-                                          var currentColour = $(this).css('background-color');
-                                          if (currentColour != cssRed) {
-                                              $(this).data('previousColour', $(this).css('background-color'));
-                                          }
-                                          $(this).css('background-color', cssRed);
-                                      } else {
-                                          $(this).css('background-color', $(this).data('previousColour'));
-                                      }
-                                      // return
-                                      if(event.which == '13') {
-                                          if(self._validateURI($(this).val())) {
-                                              event.preventDefault();
-                                              var resourceUri = $('#filterProperties').val();
-                                              var keydownEvent = $.Event("keydown");
-                                              keydownEvent.which=13;
-                                              self.element().val(resourceUri).trigger(keydownEvent);
-                                              $('.modal-wrapper-propertyselector').remove();
-                                          } else {
-                                              alert('Faulty entry! "' + $(this).val() + '" is not a valid uri.');
-                                          }
-                                      }
-                                  }).data( "autocomplete" )._renderItem = function( ul, item ) {
-                                      var li = self._listPropertyAutocomplete(item.value);
-                                      return $(li).data("item.autocomplete", item).appendTo(ul);
-                                  };
-
-            /** SHOW-HIDE-SCROLL EVENTS */
-            $('html').unbind('click').click(function(){
-                if ($('#propertypicker').css("display") != "none" && focus == false) {
-                    $('#propertypicker').parent().fadeOut();
-                    self._reinitialization();
-                } else if (focus == true){
-                    $('#propertypicker').parent().fadeIn();
-                }
-            });
-            $('#propertypicker,input[name="propertypicker"]').mouseover(function(){
-                focus = true;
-            });
-            $('#propertypicker,input[name="propertypicker"]').mouseout(function(){
-                focus = false;
-            });
-
-            /** SCROLL EVENTS */
-
-            // $('.rdfauthor-view-content,html').scroll(function() {
-                // var left = self._getPosition().left + 'px !important;';
-                // var top = self._getPosition().top + 'px !important';
-
-                // $('#propertypicker').css('left',left)
-                                    // .css('top',top);
-                // $('#propertypicker').parent().fadeOut();
-            // });
-
-            $(document).scroll(function() {
-                var height = $(document).height();
-                var width = $(document).width();
-                var windowh = $(window).height();
-                var windoww = $(window).width();
-                // $('.modal-wrapper-propertyselector').css('min-height', '100%');
-                // $('.modal-wrapper-propertyselector').css('min-width', '100%');
-            });
-
-            $('#propertypicker .button-windowclose').live('click', function() {
-                $('#propertypicker').parent().fadeOut();
-                self._reinitialization();
-            });
-
-            /** TOGGLE EVENT */
-            $('#propertypicker .content ul li h1 div').die('click').live('click', function(){
-                $(this).find('.ui-icon')
-                       .hasClass('ui-icon-minus') ? $(this).find('.ui-icon')
-                                                           .removeClass('ui-icon-minus')
-                                                           .addClass('ui-icon-plus')
-                                                  : $(this).find('.ui-icon')
-                                                           .removeClass('ui-icon-plus')
-                                                           .addClass('ui-icon-minus');
-                $(this).parent().next('div').slideToggle();
-            });
-
-            /** CLICK EVENT ON PROPERTY */
-            $('#propertypicker a[name="propertypicker"]').die('click').live('click', function(event){
-                event.preventDefault();
-                var resourceUri = $(this).attr('about');
-                var list = new Array();
-                list.push(resourceUri);
-                var keydownEvent = $.Event("keydown");
-                keydownEvent.which=13;
-                self.element().val(JSON.stringify(list)).trigger(keydownEvent);
-                $('.modal-wrapper-propertyselector').remove();
-                event.stopPropagation();
-            });
-
-            var submitcontainer = document.createElement('div');
-            $("#propertypicker")[0].appendChild(submitcontainer);
-            submitcontainer.setAttribute("style", "margin-left: 20px");
-            submitcontainer.setAttribute("class", "submit");
-               submitcontainer.innerHTML = '<button id="restore1" class="minibutton" name="test">OK</button>';
-            var hallo = $("#propertypicker")[0];
-            var laenge = $("#propertypicker").length;
-            var zeuch = $('#propertypicker,button[id="restore1"]').length;
-
-            $('#propertypicker button[name="test"]').die('click').live('click', function(event){
-                event.preventDefault();
-                event.stopPropagation();
-                var seletedProperties = $('#propertypicker input[name="abc"]');
-                var list = new Array();
-                seletedProperties.each(function(index, element){
-                    var checked = element.checked;
-                    if(checked) {
-                        list.push(element.getAttribute("id"));
+                self._hasProperties(function (hasProperties) {
+                    $.merge(self._propertiesInUse, hasProperties);
+                    for (var resourceUri in everywhereInUse) {
+                        self._propertiesInUse.push(resourceUri);
+                    }
+                    $.isFunction(callback) ? callback(everywhereInUse) : null;
+                })
+            }
+            else {
+                RDFauthor.queryGraph(graphURI, query, {
+                    callbackSuccess: function (data) {
+                        var results = data.results.bindings;
+                        for (var i in results) {
+                            if ((typeof(results[i].resourceUri) !== "undefined") && (i != "last")) {
+                                var resourceUri = results[i].resourceUri.value;
+                                (typeof(results[i].label) !== "undefined") &&
+                                (results[i].label != null) ? everywhereInUse[resourceUri] = results[i].label.value
+                                    : everywhereInUse[resourceUri] = null;
+                            }
+                        }
+                        self._hasProperties(function (hasProperties) {
+                            $.merge(self._propertiesInUse, hasProperties);
+                            for (var resourceUri in everywhereInUse) {
+                                if ($.inArray(resourceUri, hasProperties) != -1) {
+                                    delete everywhereInUse[resourceUri];
+                                } else {
+                                    self._propertiesInUse.push(resourceUri);
+                                }
+                            }
+                            $.isFunction(callback) ? callback(everywhereInUse) : null;
+                        })
                     }
                 });
-                var keydownEvent = $.Event("keydown");
-                keydownEvent.which = 13;
-                self.element().val(JSON.stringify(list)).trigger(keydownEvent);
-                $('.modal-wrapper-propertyselector').remove();
+            }
+        },
+
+        _hasProperties: function (callback) {
+            var self = this;
+            var subjectURI = self.statement.subjectURI();
+            var graphURI = self.statement.graphURI();
+            var prefixPattern = '\
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\
+            PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n';
+            var selectPattern = '?resourceUri\n';
+            var uriPattern = '<' + subjectURI + '> ?resourceUri ?object .\n';
+            var query = prefixPattern + 'SELECT ' + selectPattern
+                + 'WHERE { \n'
+                + uriPattern
+                + '}';
+            var hasProperties = [];
+            //query
+            RDFauthor.queryGraph(graphURI, query, {
+                callbackSuccess: function (data) {
+                    var results = data.results.bindings;
+                    for (var i in results) {
+                        if ((results[i].resourceUri != "undefined") && (i != "last")) {
+                            hasProperties.push(results[i].resourceUri.value);
+                        }
+                    }
+                    $.isFunction(callback) ? callback(hasProperties) : null;
+                },
+                callbackError: function () {
+                    $.isFunction(callback) ? callback(hasProperties) : null;
+                }
             });
+        },
+
+        _performSearch: function (requestTerm, callback) {
+            if (typeof(requestTerm) == 'function') {
+                requestTerm = null;
+            }
+            var self = this;
+            var value = $('#filterProperties').val();
+            var subjectURI = self.statement.subjectURI();
+            var graphURI = self.statement.graphURI();
+            var prefixPattern = '\
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\
+            PREFIX owl: <http://www.w3.org/2002/07/owl#>\n';
+            var selectPattern = 'DISTINCT ?resourceUri\n';
+            var classPattern = '?resourceUri a ?class .\n';
+            var literalPattern = '?resourceUri ?p0 ?literal .\n';
+            var filter1 = 'FILTER (REGEX(?literal, "' + requestTerm + '", "i")). \n';
+            var filter2 = 'FILTER ( ( ( (sameTerm(?class,owl:DatatypeProperty)) || (sameTerm(?class,owl:ObjectProperty)) ) || \
+                                (sameTerm(?class, rdf:Property)) ) || \
+                                (sameTerm(?class, owl:AnnotationProperty)) ).\n';
+            var query = prefixPattern + 'SELECT ' + selectPattern
+                + 'WHERE { \n'
+                + classPattern
+                + literalPattern
+                + filter1
+                + filter2
+                + '}';
+            //query
+            RDFauthor.queryGraph(graphURI, query, {
+                callbackSuccess: function (data) {
+                    var results = data.results.bindings;
+                    var queryResult = [];
+                    for (var i in results) {
+                        if (typeof results[i].resourceUri == 'object') {
+                            queryResult.push(results[i].resourceUri.value);
+                        }
+                    }
+                    $.isFunction(callback) ? callback(queryResult) : null;
+                },
+                callbackError: function () {
+                    $.isFunction(callback) ? callback() : null;
+                }
+            });
+
+        },
+
+        _listProperty: function (resourceUri, label, comment) {
+            var self = this;
+            label = label == null ? self.localName(resourceUri) : label;
+            title = typeof(comment) != "undefined" ? comment : label;
+            return '<li><a name="propertypicker" class="show-property Resource" about="' + resourceUri + '" \
+                title="' + title + '">' + label + '</a><input type="checkbox" name="abc" value="' + label + '" class="propertycheckbox" id="' + resourceUri + '"></li>';
+        },
+
+        _listPropertyAutocomplete: function (resourceUri) {
+            var self = this;
+            label = self.localName(resourceUri);
+            return '<li><a style="line-height:0.8em !important;">\
+                <span style="font-size: 15px;">' + label + '</span><br/>\
+                <span style="font-size:10px;">' + resourceUri + '</span></li>';
+        },
+
+        _normalizeValue: function (value) {
+            if (!this.selectedResource) {
+                this.selectedResource = this.expandNamespace(value);
+                this.selectedResourceLabel = this.localName(this.selectedResource);
+            }
+        },
+
+        _validateURI: function (uri) {
+            var uriRE = new RegExp(
+                /^([a-zA-Z][a-zA-Z0-9+-.]*):((\/\/(((([a-zA-Z0-9\-._~!$&'()*+,;=':]|(%[0-9a-fA-F]{2}))*)@)?((\[((((([0-9a-fA-F]{1,4}:){6}|(::([0-9a-fA-F]{1,4}:){5})|(([0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:){4})|((([0-9a-fA-F]{1,4}:)?[0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:){3})|((([0-9a-fA-F]{1,4}:){0,2}[0-9a-fA-F]{1,4})?::([0-9a-fA-F]{1,4}:){2})|((([0-9a-fA-F]{1,4}:){0,3}[0-9a-fA-F]{1,4})?::[0-9a-fA-F]{1,4}:)|((([0-9a-fA-F]{1,4}:){0,4}[0-9a-fA-F]{1,4})?::))((([0-9a-fA-F]{1,4}):([0-9a-fA-F]{1,4}))|(([0-9]|(1[0-9]{2})|(2[0-4][0-9])|(25[0-5]))\.([0-9]|(1[0-9]{2})|(2[0-4][0-9])|(25[0-5]))\.([0-9]|(1[0-9]{2})|(2[0-4][0-9])|(25[0-5]))\.([0-9]|(1[0-9]{2})|(2[0-4][0-9])|(25[0-5])))))|((([0-9a-fA-F]{1,4}:){0,5}[0-9a-fA-F]{1,4})?::[0-9a-fA-F]{1,4})|((([0-9a-fA-F]{1,4}:){0,5}[0-9a-fA-F]{1,4})?::))|(v[0-9a-fA-F]+\.[a-zA-Z0-9\-._~!$&'()*+,;=':]+))\])|(([0-9]|(1[0-9]{2})|(2[0-4][0-9])|(25[0-5]))\.([0-9]|(1[0-9]{2})|(2[0-4][0-9])|(25[0-5]))\.([0-9]|(1[0-9]{2})|(2[0-4][0-9])|(25[0-5]))\.([0-9]|(1[0-9]{2})|(2[0-4][0-9])|(25[0-5])))|(([a-zA-Z0-9\-._~!$&'()*+,;=']|(%[0-9a-fA-F]{2}))*))(:[0-9]*)?)((\/([a-zA-Z0-9\-._~!$&'()*+,;=':@]|(%[0-9a-fA-F]{2}))*)*))|(\/?(([a-zA-Z0-9\-._~!$&'()*+,;=':@]|(%[0-9a-fA-F]{2}))+(\/([a-zA-Z0-9\-._~!$&'()*+,;=':@]|(%[0-9a-fA-F]{2}))*)*)?))(\?(([a-zA-Z0-9\-._~!$&'()*+,;=':@\/?]|(%[0-9a-fA-F]{2}))*))?((#(([a-zA-Z0-9\-._~!$&'()*+,;=':@\/?]|(%[0-9a-fA-F]{2}))*)))?$/i
+            );
+            return uriRE.test(uri);
+        },
+
+        _init: function () {
+            var self = this;
+            var focus;
+            if (this._pluginLoaded && this._domReady) {
+                self.element().click(function () {
+                    focus = true;
+                    // positioning
+                    var left = self._getPosition().left + 'px !important;';
+                    var top = self._getPosition().top + 'px !important';
+
+                    $('#propertypicker').data('input', $(this))
+                        .draggable({
+                            cancel: '#propertypicker .content, #propertypicker h1 input'
+                        }).keydown(function (e) {
+                            if (e.which === 27) {
+                                e.stopPropagation();
+                                $('#propertypicker').parent().fadeOut();
+                                self._reinitialization();
+                            }
+                        });
+                    // query - fills the everywhere in use part
+                    self._suggestions(function (everywhereInUse) {
+                        // add in use everywhere to dom
+                        for (var resourceUri in everywhereInUse) {
+                            $('#suggestedInUse ul').append(self._listProperty(resourceUri, everywhereInUse[resourceUri], resourceUri));
+                        }
+                        $('#suggestedInUseCount').html(Object.size(everywhereInUse));
+
+                        // sort suggested template properties alphabetical for display
+                        function SortByName(a, b) {
+                            var aName = a[1].label.toLowerCase();
+                            var bName = b[1].label.toLowerCase();
+                            return ((aName < bName) ? -1 : ((aName > bName) ? 1 : 0));
+                        }
+
+                        var sortable = [];
+                        for (var resourceUri in self._templateProperties)
+                            sortable.push([resourceUri, self._templateProperties[resourceUri]])
+
+                        sortable.sort(SortByName)
+
+                        for (var i = 0; i < sortable.length; ++i) {
+                            var elem = sortable[i];
+                            $('#templateProperties ul').append(self._listProperty(elem[0], elem[1].label));
+                        }
+                        var templateCount = Object.size(self._templateProperties);
+                        if (templateCount > 0) {
+                            $('#templateCount').html(templateCount);
+                            $('#templatePropertiesLi').removeAttr('style');
+                            $('#generalPropertiesLi').hide();
+                            $('#elsewherePropertiesLi').hide();
+                        }
+
+                        // add general applicable to dom
+                        var generalapplicable = __propertycache['generalapplicable'];
+                        // show only new suggested general applicable properties
+                        for (var resourceUri in generalapplicable) {
+                            if ($.inArray(resourceUri, self._propertiesInUse) != -1) {
+                                delete generalapplicable[resourceUri];
+                            } else {
+                                $('#suggestedGeneral ul').append(self._listProperty(resourceUri,
+                                    generalapplicable[resourceUri].label,
+                                    generalapplicable[resourceUri].comment));
+                            }
+                        }
+                        $('#suggestedGeneralCount').html(Object.size(generalapplicable));
+
+                        //TESTING
+                        self._performSearch(function () {
+
+                        });
+
+                        // ready
+                        $('#spinner-propertyselector').remove();
+                        $('#propertypicker').fadeIn('fast', function () {
+                            self._positioning();
+                            $('#filterProperties').focus().blur(function () {
+                                if ($(this).val().length == 0) {
+                                    $(this).val(self._filterProperties);
+                                }
+                            });
+                        });
+                    });
+                }).keydown(function (e) {
+                    if ((e.which === 13) && self._options.selectOnReturn) {
+                        $('#propertypicker').hide();
+                        var el = jQuery(e.target).val();
+                        var jsonArray = JSON.parse(el);
+                        $.each(jsonArray, function (index, element) {
+
+                            var selectedResource = self.expandNamespace(element);
+                            var selectedResourceLabel = self.localName(selectedResource);
+
+                            if ((self._additionalInfo != undefined) && (self.selectedResource in self._additionalInfo) && (self.selectedResource[self._additionalInfo] !== '') && ("datatype" in self._additionalInfo[self.selectedResource])) {
+                                self._options.selectionCallback(selectedResource, selectedResourceLabel, self._additionalInfo[self.selectedResource]["datatype"]);
+                            }
+                            else {
+                                self._options.selectionCallback(selectedResource, selectedResourceLabel);
+                            }
+                            // prevent newline in new widget field
+                            e.preventDefault();
+                        });
+
+                    } else if (e.which === 27) {
+                        e.stopPropagation();
+                    }
+                });
+
+                /** INPUT EVENTS */
+
+                $('#filterProperties').click(function () {
+                    if ($(this).val() == self._filterProperties) {
+                        $(this).val('').css('background-color', 'none');
+                    }
+                }).autocomplete({
+                    minLength: 3,
+                    delay: 500,
+                    source: function (request, response) {
+                        self._performSearch(request.term, function (result) {
+                            response(result);
+                        });
+                        $('.ui-autocomplete:last').css({
+                            'max-height': '300px',
+                            'overflow-y': 'auto',
+                            'overflow-x': 'hidden',
+                            'padding-right': '1px'
+                        });
+                    },
+                    select: function (event, ui) {
+                        var resourceUri = ui.item.value;
+                        var keydownEvent = $.Event("keydown");
+                        keydownEvent.which = 13;
+                        self.element().val(resourceUri).trigger(keydownEvent);
+                        $('.modal-wrapper-propertyselector').remove();
+                    }
+                }).keyup(function (event) {
+                    // uri check
+                    var cssRed = 'rgb(255, 187, 187)';
+                    if (!self._validateURI($(this).val()) && $(this).val().length != 0) {
+                        var currentColour = $(this).css('background-color');
+                        if (currentColour != cssRed) {
+                            $(this).data('previousColour', $(this).css('background-color'));
+                        }
+                        $(this).css('background-color', cssRed);
+                    } else {
+                        $(this).css('background-color', $(this).data('previousColour'));
+                    }
+                    // return
+                    if (event.which == '13') {
+                        if (self._validateURI($(this).val())) {
+                            event.preventDefault();
+                            var resourceUri = $('#filterProperties').val();
+                            var keydownEvent = $.Event("keydown");
+                            keydownEvent.which = 13;
+                            self.element().val(resourceUri).trigger(keydownEvent);
+                            $('.modal-wrapper-propertyselector').remove();
+                        } else {
+                            alert('Faulty entry! "' + $(this).val() + '" is not a valid uri.');
+                        }
+                    }
+                }).data("autocomplete")._renderItem = function (ul, item) {
+                    var li = self._listPropertyAutocomplete(item.value);
+                    return $(li).data("item.autocomplete", item).appendTo(ul);
+                };
+
+                /** SHOW-HIDE-SCROLL EVENTS */
+                $('html').unbind('click').click(function () {
+                    if ($('#propertypicker').css("display") != "none" && focus == false) {
+                        $('#propertypicker').parent().fadeOut();
+                        self._reinitialization();
+                    } else if (focus == true) {
+                        $('#propertypicker').parent().fadeIn();
+                    }
+                });
+                $('#propertypicker,input[name="propertypicker"]').mouseover(function () {
+                    focus = true;
+                });
+                $('#propertypicker,input[name="propertypicker"]').mouseout(function () {
+                    focus = false;
+                });
+
+                /** SCROLL EVENTS */
+
+                    // $('.rdfauthor-view-content,html').scroll(function() {
+                    // var left = self._getPosition().left + 'px !important;';
+                    // var top = self._getPosition().top + 'px !important';
+
+                    // $('#propertypicker').css('left',left)
+                    // .css('top',top);
+                    // $('#propertypicker').parent().fadeOut();
+                    // });
+
+                $(document).scroll(function () {
+                    var height = $(document).height();
+                    var width = $(document).width();
+                    var windowh = $(window).height();
+                    var windoww = $(window).width();
+                    // $('.modal-wrapper-propertyselector').css('min-height', '100%');
+                    // $('.modal-wrapper-propertyselector').css('min-width', '100%');
+                });
+
+                $('#propertypicker .button-windowclose').live('click', function () {
+                    $('#propertypicker').parent().fadeOut();
+                    self._reinitialization();
+                });
+
+                /** TOGGLE EVENT */
+                $('#propertypicker .content ul li h1 div').die('click').live('click', function () {
+                    $(this).find('.ui-icon')
+                        .hasClass('ui-icon-minus') ? $(this).find('.ui-icon')
+                        .removeClass('ui-icon-minus')
+                        .addClass('ui-icon-plus')
+                        : $(this).find('.ui-icon')
+                        .removeClass('ui-icon-plus')
+                        .addClass('ui-icon-minus');
+                    $(this).parent().next('div').slideToggle();
+                });
+
+                /** CLICK EVENT ON PROPERTY */
+                $('#propertypicker a[name="propertypicker"]').die('click').live('click', function (event) {
+                    event.preventDefault();
+                    var seletedProperties = $('#propertypicker input[name="abc"]');
+
+                    var propertiesChecked = false;
+                    var BreakException = {};
+                    try {
+                        seletedProperties.each(function (index, element) {
+                            if (element.checked) {
+                                propertiesChecked = true;
+                                throw BreakException;
+                            }
+                        });
+                    } catch (e) {
+                        if (e !== BreakException) throw e;
+                    }
+
+                    if (propertiesChecked) {
+                        var ok = confirm(_translate('Confirm attribute selection') + ' "' + $(this).text() + '"');
+                        if(!ok){
+                            event.stopPropagation();
+                            return;
+                        }
+                    }
+                    var resourceUri = $(this).attr('about');
+                    var list = new Array();
+                    list.push(resourceUri);
+                    var keydownEvent = $.Event("keydown");
+                    keydownEvent.which = 13;
+                    self.element().val(JSON.stringify(list)).trigger(keydownEvent);
+                    $('.modal-wrapper-propertyselector').remove();
+                    event.stopPropagation();
+                });
+
+                var submitcontainer = document.createElement('div');
+                $("#propertypicker")[0].appendChild(submitcontainer);
+                submitcontainer.setAttribute("style", "margin-left: 20px");
+                submitcontainer.setAttribute("class", "submit");
+                submitcontainer.innerHTML = '<button id="restore1" class="minibutton" name="test">OK</button>';
+                var hallo = $("#propertypicker")[0];
+                var laenge = $("#propertypicker").length;
+                var zeuch = $('#propertypicker,button[id="restore1"]').length;
+
+                $('#propertypicker button[name="test"]').die('click').live('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    var seletedProperties = $('#propertypicker input[name="abc"]');
+                    var list = new Array();
+                    seletedProperties.each(function (index, element) {
+                        var checked = element.checked;
+                        if (checked) {
+                            list.push(element.getAttribute("id"));
+                        }
+                    });
+                    var keydownEvent = $.Event("keydown");
+                    keydownEvent.which = 13;
+                    self.element().val(JSON.stringify(list)).trigger(keydownEvent);
+                    $('.modal-wrapper-propertyselector').remove();
+                });
+            }
+        },
+
+        _getPosition: function () {
+            var pos = {
+                'top': this.element().offset().top + this.element().outerHeight(),
+                'left': this.element().offset().left
+            };
+            return pos;
+        },
+
+        _positioning: function (element) {
+            if (element !== undefined) {
+                var element = $(element)
+            } else {
+                var element = $('#propertypicker');
+            }
+            //trick to get the height and width from a non visible object using jquery
+            var bodyh = $(document).height();
+            var bodyw = $(document).width();
+            var windowh = $(window).height();
+            var windoww = $(window).width();
+            var ww = element.outerWidth();
+            var wh = element.outerHeight();
+
+            var offsetPosition = {
+                'top': Math.max((windowh - wh) * 0.5 + $(document).scrollTop(), 20),
+                'left': Math.max((bodyw - ww) * 0.5, 50)
+            }
+            element.offset(offsetPosition);
+        },
+
+        _reinitialization: function () {
+            var self = this;
+            var propertyselectorInlineController = self.element().parent().parent().parent().parent().parent();
+            var propertyselectorPopOverController = self.element().parent().parent();
+            if (propertyselectorInlineController.attr('id') != "rdfauthor-view") {
+                propertyselectorInlineController.remove();
+            } else {
+                propertyselectorPopOverController.remove();
+            }
+            //remove model-wrapper div including propertypicker
+            $('#propertypicker').parent().remove();
         }
-    },
 
-    _getPosition: function () {
-        var pos = {
-            'top' : this.element().offset().top + this.element().outerHeight(),
-            'left': this.element().offset().left
-        };
-        return pos;
-    },
-
-    _positioning: function (element) {
-        if (element !== undefined) {
-            var element = $(element)
-        } else {
-            var element = $('#propertypicker');
-        }
-        //trick to get the height and width from a non visible object using jquery
-        var bodyh = $(document).height();
-        var bodyw = $(document).width();
-        var windowh = $(window).height();
-        var windoww = $(window).width();
-        var ww = element.outerWidth();
-        var wh = element.outerHeight();
-
-        var offsetPosition = {
-            'top': Math.max( (windowh - wh) * 0.5 + $(document).scrollTop(), 20),
-            'left': Math.max( (bodyw - ww) * 0.5 , 50 )
-        }
-        element.offset(offsetPosition);
-    },
-
-    _reinitialization: function () {
-        var self = this;
-        var propertyselectorInlineController = self.element().parent().parent().parent().parent().parent();
-        var propertyselectorPopOverController = self.element().parent().parent();
-        if(propertyselectorInlineController.attr('id') != "rdfauthor-view") {
-            propertyselectorInlineController.remove();
-        } else {
-            propertyselectorPopOverController.remove();
-        }
-        //remove model-wrapper div including propertypicker
-        $('#propertypicker').parent().remove();
-    }
-
-}, [{
+    }, [{
         name: '__PROPERTY__'
     }]
 );

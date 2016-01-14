@@ -132,6 +132,11 @@ var __i18n = {
     'Change reason' : {
         'en' : "Please enter the reason of the change.\nPress cancel if you don't want to specify any change reason.",
         'de' : "Bitte geben Sie den Grund der Änderung ein.\nBenutzen Sie die Schaltfläche 'Cancel', wenn sie keinen Grund angeben wollen."
+    },
+
+    'Confirm attribute selection' : {
+        'en' : "Are you sure that you want to only add the attribute:",
+        'de' : "Sind Sie sicher, dass Sie nur dieses Attribut hinzufügen möchten:"
     }
 
 }
