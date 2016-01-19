@@ -1192,7 +1192,7 @@ RDFauthor = (function($) {
                                         for (var i = 0; i < objects.length; i++) {
                                             var specObj = objects[i];
                                             var specReferenceObj = referenceObjects[i];
-                                            if(specReferenceObj.datatype){
+                                            if(specReferenceObj !== undefined && specReferenceObj.datatype){
                                                 specObj.datatype = specReferenceObj.datatype;
                                                 specObj.type = "literal";
                                             }
@@ -2036,7 +2036,7 @@ RDFauthor = (function($) {
             var defaults = {
                 callbackSuccess: null, 
                 callbackError: null, 
-                async: true, 
+                async: true,
                 sparqlEndpoint: null 
             };
             var o = $.extend(defaults, options);
@@ -2289,7 +2289,7 @@ RDFauthor = (function($) {
          * choosing the right widget.
          */
         updateInfoPredicate: function (statement, async) {
-            if(typeof(async)==='undefined') async = true;
+            if(typeof(async)==='undefined') async = false;
             var self = this;
             // jquery deferred object
             var dfd = $.Deferred();

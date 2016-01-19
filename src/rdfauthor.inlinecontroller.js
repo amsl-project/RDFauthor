@@ -14,6 +14,7 @@ function InlineController(options) {
     // rows by (s,p,o) key
     this._rows     = {};
     this._rowsByID = {};
+    this._rowCount = 0;
 
     this.addWidget = function (statement, constructor, options) {
         var element  = this._options.container(statement);
@@ -24,7 +25,7 @@ function InlineController(options) {
 
         var predicateURI = statement.predicateURI();
         var rowID        = RDFauthor.nextID();
-        var rowKey       = String(statement);
+        var rowKey       = String(Math.random());
 
         var row = new PredicateRow(statement.subjectURI(),
                                    statement.predicateURI(),

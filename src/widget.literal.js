@@ -317,7 +317,7 @@ RDFauthor.registerWidget({
             var v = this.value();
             // */
             var trimmedValue = null;
-            if(this.value() !== null){
+            if(this.value() !== null && this.value() !== undefined){
                 trimmedValue = this.value().trim();
                 trimmedValue = trimmedValue[0].toUpperCase() + trimmedValue.slice(1);
             }
