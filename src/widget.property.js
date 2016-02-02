@@ -714,6 +714,7 @@ RDFauthor.registerWidget({
 
                 /** CLICK EVENT ON PROPERTY */
                 $('#propertypicker a[name="propertypicker"]').die('click').live('click', function (event) {
+                    $('.property-add').css("display", "none");
                     event.preventDefault();
                     var seletedProperties = $('#propertypicker input[name="abc"]');
 
@@ -752,11 +753,9 @@ RDFauthor.registerWidget({
                 submitcontainer.setAttribute("style", "margin-left: 20px");
                 submitcontainer.setAttribute("class", "submit");
                 submitcontainer.innerHTML = '<button id="restore1" class="minibutton" name="test">OK</button>';
-                var hallo = $("#propertypicker")[0];
-                var laenge = $("#propertypicker").length;
-                var zeuch = $('#propertypicker,button[id="restore1"]').length;
 
                 $('#propertypicker button[name="test"]').die('click').live('click', function (event) {
+                    $('.property-add').attr("style", "display: none;");
                     event.preventDefault();
                     event.stopPropagation();
                     var seletedProperties = $('#propertypicker input[name="abc"]');

@@ -356,7 +356,7 @@ RDFauthor = (function($) {
     
     function _createInlineView() {
         var viewController = new InlineController(_options.viewOptions);
-        
+
         return viewController;
     }
     
