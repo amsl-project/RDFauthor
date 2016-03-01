@@ -137,7 +137,7 @@ RDFauthor.registerWidget({
     },
 
     validateLabel: function (label) {
-        var emailRE = new RegExp(/^[a-zA-Z_-]+@([0-9a-z-]+\.)+([a-z]){2,5}$/);
+        var emailRE = new RegExp(/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/);
 
         return emailRE.test(label);
     },
