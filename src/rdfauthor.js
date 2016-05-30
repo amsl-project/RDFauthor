@@ -2362,7 +2362,8 @@ RDFauthor = (function($) {
                 // resolve deferred object
                 dfd.resolve();
             } else {
-                // query
+                // check the data fix
+                var found = false;
                 for (var entry in RDFAUTHOR_DATATYPES_FIX) {
                     var data = RDFAUTHOR_DATATYPES_FIX[entry];
                     for (var key in data) {
@@ -2387,6 +2388,7 @@ RDFauthor = (function($) {
                     dfd.resolve();
                 }
                 if(!found) {
+                    // query
                     var query = 'SELECT ?type ?range ?owlOneOf ?displayAs'
                         + ' WHERE {'
                         + ' <' + predicateURI + '> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?type .'
