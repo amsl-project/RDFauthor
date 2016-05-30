@@ -979,6 +979,11 @@ RDFauthor = (function($) {
 
                             // init statement
                             var statement2 = new Statement(triples[i], {'graph': graph, objectLabel: label, 'title': statement['_predicate']['label']});
+                            //if(i == length - 1) {
+                            //    view.addWidget(statement2);
+                            //}else{
+                            //    view.addWidget(statement2, false);
+                            //}
                             view.addWidget(statement2);
                         }
                     }
@@ -2358,20 +2363,45 @@ RDFauthor = (function($) {
                 dfd.resolve();
             } else {
                 // query
-                var query = 'SELECT ?type ?range ?owlOneOf ?displayAs'
-                          + ' WHERE {'
-                          + ' <' + predicateURI + '> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?type .'
-                          + ' OPTIONAL { <' + predicateURI + '> <http://www.w3.org/2000/01/rdf-schema#range> ?range '
-                          + '    OPTIONAL { ?range <http://www.w3.org/2002/07/owl#oneOf> ?owlOneOf } '
-                          + ' }'
-                          + ' OPTIONAL { ?range <http://ns.ontowiki.net/SysOnt/displayAs> ?displayAs }'
-                          + ' }';
+                for (var entry in RDFAUTHOR_DATATYPES_FIX) {
+                    var data = RDFAUTHOR_DATATYPES_FIX[entry];
+                    for (var key in data) {
+                        var uri = predicateURI;
+                        if(uri == key){
+                            found = true;
+                            _predicateInfo[predicateURI] = new Array();
+                            if(data[key][0]["range"] == null){
+                            }
+                            if(!Array.isArray(data[key][0]["range"])){
+                                _predicateInfo[predicateURI][rangeURI] = data[key][0]["range"];
+                            }else{
+                                alert("TODO: rangePattern for multiple ranges");
+                            }
+                            if(data[key][0]["type"] == null){
+                            }else{
+                                _predicateInfo[predicateURI][typeURI] = data[key][0]["type"];
+                            }
+                            break;
+                        }
+                    }
+                    dfd.resolve();
+                }
+                if(!found) {
+                    var query = 'SELECT ?type ?range ?owlOneOf ?displayAs'
+                        + ' WHERE {'
+                        + ' <' + predicateURI + '> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> ?type .'
+                        + ' OPTIONAL { <' + predicateURI + '> <http://www.w3.org/2000/01/rdf-schema#range> ?range '
+                        + '    OPTIONAL { ?range <http://www.w3.org/2002/07/owl#oneOf> ?owlOneOf } '
+                        + ' }'
+                        + ' OPTIONAL { ?range <http://ns.ontowiki.net/SysOnt/displayAs> ?displayAs }'
+                        + ' }';
 
-                // debug log
-                // console.log('query', query);
+                    // debug log
+                    // console.log('query', query);
 
-                // run query
-                self.queryGraph(statement.graphURI(), query, options);
+                    // run query
+                    self.queryGraph(statement.graphURI(), query, options);
+                }
             }
             
             // promise deferred object
