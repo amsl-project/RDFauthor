@@ -943,53 +943,38 @@ RDFauthor = (function($) {
             view = RDFauthor.getView();
         }
         /* make sure, view has predicate info available */
-        _fetchPredicateInfo(function() {
-            if (null !== root) {
-                root.find('.rdfauthor-statement-provider').each(function () {
-                    var statement = $(this).data('rdfauthor.statement');
-                    view.addWidget(statement);
-                });
-            } else {
-                // add all parsed statements
-                for (var graph in _databanksByGraph) {
-                    var updateEndpoint = RDFauthor.updateURIForGraph(graph);
-                    if (undefined !== updateEndpoint) {
-                        var triples = _databanksByGraph[graph].triples();
-                        // if an order for the predicates is given, resort triples
-                        if (_options.propertyOrder != null) {
-                            var sortedTriples = [];
-                            for (var i = 0; i < _options.propertyOrder.length; i++) {
-                                for (var j = 0; j < triples.length; j++) {
-                                   if (triples[j].property.value._string === _options.propertyOrder[i]) {
-                                       sortedTriples.push(triples[j]);
-                                   }
-                                }
+        for (var graph in _databanksByGraph) {
+            var updateEndpoint = RDFauthor.updateURIForGraph(graph);
+            if (undefined !== updateEndpoint) {
+                var triples = _databanksByGraph[graph].triples();
+                // if an order for the predicates is given, resort triples
+                if (_options.propertyOrder != null) {
+                    var sortedTriples = [];
+                    for (var i = 0; i < _options.propertyOrder.length; i++) {
+                        for (var j = 0; j < triples.length; j++) {
+                            if (triples[j].property.value._string === _options.propertyOrder[i]) {
+                                sortedTriples.push(triples[j]);
                             }
-                            var triples = sortedTriples;
-                        }
-                        for (var i = 0, length = triples.length; i < length; i++) {
-                            // init statement
-                            var statement = new Statement(triples[i], {'graph': graph});
-                            // handle object label callback
-                            var element = RDFauthor.elementForStatement(statement);
-                            var label = null;
-                            if (typeof _options.objectLabel == 'function') {
-                                label = _options.objectLabel(element);
-                            }
-
-                            // init statement
-                            var statement2 = new Statement(triples[i], {'graph': graph, objectLabel: label, 'title': statement['_predicate']['label']});
-                            //if(i == length - 1) {
-                            //    view.addWidget(statement2);
-                            //}else{
-                            //    view.addWidget(statement2, false);
-                            //}
-                            view.addWidget(statement2);
                         }
                     }
+                    var triples = sortedTriples;
+                }
+                for (var i = 0, length = triples.length; i < length; i++) {
+                    // init statement
+                    var statement = new Statement(triples[i], {'graph': graph});
+                    // handle object label callback
+                    var element = RDFauthor.elementForStatement(statement);
+                    var label = null;
+                    if (typeof _options.objectLabel == 'function') {
+                        label = _options.objectLabel(element);
+                    }
+
+                    // init statement
+                    var statement2 = new Statement(triples[i], {'graph': graph, objectLabel: label, 'title': statement['_predicate']['label']});
+                    view.addWidget(statement2);
                 }
             }
-        });
+        }
     }
     
     /**
@@ -1095,10 +1080,8 @@ RDFauthor = (function($) {
      */
     function _showView() {
         /* make sure, view has predicate info available */
-        _fetchPredicateInfo(function() {
-            var view = RDFauthor.getView();
-            view.show(true);
-        });
+        var view = RDFauthor.getView();
+        view.show(true);
     }
     
     /**
@@ -1855,7 +1838,7 @@ RDFauthor = (function($) {
             if (displayAs === 'dropdown') {
                 widgetConstructor = _registeredWidgets.other.owlOneOf;
                 options.displayAs = 'dropdown';
-            } else if (owlOneOf === 'TRUE') {
+            } else if (!Array.isArray(owlOneOf) && owlOneOf !== '') {
                 widgetConstructor = _registeredWidgets.other.owlOneOf;
                 options.owlOneOf = ranges[0];
             } else if (subjectURI in _registeredWidgets.resource) {
@@ -2371,16 +2354,18 @@ RDFauthor = (function($) {
                         if(uri == key){
                             found = true;
                             _predicateInfo[predicateURI] = new Array();
-                            if(data[key][0]["range"] == null){
-                            }
-                            if(!Array.isArray(data[key][0]["range"])){
-                                _predicateInfo[predicateURI][rangeURI] = data[key][0]["range"];
-                            }else{
-                                alert("TODO: rangePattern for multiple ranges");
-                            }
+                            _predicateInfo[predicateURI][rangeURI] = data[key][0]["range"];
                             if(data[key][0]["type"] == null){
                             }else{
-                                _predicateInfo[predicateURI][typeURI] = data[key][0]["type"];
+                                _predicateInfo[predicateURI]["type"] = data[key][0]["type"];
+                            }
+                            if(data[key][0]["owlOneOf"] != ""){
+                                _predicateInfo[predicateURI]['owlOneOf'] = data[key][0]["owlOneOf"];
+                            }else{
+                                _predicateInfo[predicateURI]['owlOneOf'] = "";
+                            }
+                            if(data[key][0]["displayAs"] != ""){
+                                _predicateInfo[predicateURI]['displayAs'] = data[key][0]["displayAs"];
                             }
                             break;
                         }

@@ -50,16 +50,45 @@ RDFauthor.registerWidget({
     },
 
     fetchValuesWithSPARQL11: function() {
-        var query = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ' ;
-        query += 'SELECT DISTINCT ?elem ?label WHERE {';
-        query += '    <' + this.datatypeURI + '> <http://www.w3.org/2002/07/owl#oneOf> ?list . ';
-        query += '    ?list rdf:rest*/rdf:first ?elem . ';
-        query += '    OPTIONAL {';
-        query += '        ?elem <http://www.w3.org/2000/01/rdf-schema#label> ?label .';
-        query += "        FILTER(lang(?label) = '" + RDFAUTHOR_LANGUAGE + "')";
-        query += '    }';
-        query += '}';
-        this.processFetchQuery(query);
+        var found = false;
+        var drop = [];
+        var dropalt = {};
+        for (var entry in RDFAUTHOR_DATATYPES_FIX) {
+            var data = RDFAUTHOR_DATATYPES_FIX[entry];
+            for (var key in data) {
+                var uri = this.datatypeURI.toLowerCase();
+                var k = key.toLowerCase();
+                if (uri == k) {
+                    found = true;
+                    var data1 = data[key][0]["dropDownContent"];
+                    var response = data1['results']['bindings'];
+                    for (var i = 0; i < response.length; i++) {
+                        var op = 'option' + (i+1);
+                        dropalt[op] = {
+                            'value' : response[i]['elem']['value'],
+                            'type'  : response[i]['elem']['type']
+                        }
+                        if (response[i]['label'] !== undefined) {
+                            dropalt[op]['label'] = response[i]['label']['value'];
+                        }
+                        drop.push(response[i]['elem']['value']);
+                    }
+                    this.dropValues = dropalt;
+                }
+            }
+        }
+        if(!found) {
+            var query = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ';
+            query += 'SELECT DISTINCT ?elem ?label WHERE {';
+            query += '    <' + this.datatypeURI + '> <http://www.w3.org/2002/07/owl#oneOf> ?list . ';
+            query += '    ?list rdf:rest*/rdf:first ?elem . ';
+            query += '    OPTIONAL {';
+            query += '        ?elem <http://www.w3.org/2000/01/rdf-schema#label> ?label .';
+            query += "        FILTER(lang(?label) = '" + RDFAUTHOR_LANGUAGE + "')";
+            query += '    }';
+            query += '}';
+            this.processFetchQuery(query);
+        }
     },
 
     fetchValuesByExhaustion: function() {

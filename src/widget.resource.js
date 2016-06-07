@@ -288,11 +288,11 @@ RDFauthor.registerWidget({
                     if(data[key][0]["range"] == null){
                         break;
                     }
-                    if(!Array.isArray(data[key][0]["range"])){
-                        rangePattern += '?uri a <' + data[key][0]["range"] + '> . \n';
+                    if(data[key][0]["range"]){
+                        $(data[key][0]["range"]).each(function (i) {
+                            rangePattern += '?uri a <' + data[key][0]["range"][i].value + '> . \n';
+                        });
                         break;
-                    }else{
-                        alert("TODO: rangePattern for multiple ranges");
                     }
                 }
             }
