@@ -171,12 +171,13 @@ RDFauthor.registerWidget({
         if (this.shouldProcessSubmit()) {
             // get databank
             var databank   = RDFauthor.databankForGraph(this.statement.graphURI());
+            var value = this.value();
             var hasChanged = (
                 this.statement.hasObject()
                 && this.statement.objectValue() !== this.value()
                 && null !== this.value()
             );
-
+            hasChanged = true;
             if (hasChanged || this.removeOnSubmit || this.value() == null) {
                 var rdfqTriple = this.statement.asRdfQueryTriple();
                 if (rdfqTriple) {
@@ -209,6 +210,8 @@ RDFauthor.registerWidget({
                 else {
                     return true;
                 }
+            }else{
+                var test = 0;
             }
         }
         return true;
@@ -290,7 +293,9 @@ RDFauthor.registerWidget({
                     }
                     if(data[key][0]["range"]){
                         $(data[key][0]["range"]).each(function (i) {
-                            rangePattern += '?uri a <' + data[key][0]["range"][i].value + '> . \n';
+                            if(data[key][0]["range"][i] != null && data[key][0]["range"][i].value != "") {
+                                rangePattern += '?uri a <' + data[key][0]["range"][i].value + '> . \n';
+                            }
                         });
                         break;
                     }

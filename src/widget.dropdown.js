@@ -498,16 +498,16 @@ RDFauthor.registerWidget({
                     this.statement.objectDatatype() !== this.datatype()
                 )
             );
-
+            somethingChanged = true;
             // new statement must not be empty
             var isNew = !this.statement.hasObject() && (null !== this.value());
-
             if (somethingChanged || this.removeOnSubmit) {
                 var rdfqTriple = this.statement.asRdfQueryTriple();
                 if (rdfqTriple) {
                     databank.remove(rdfqTriple);
                 }
             }
+
             if ((null !== this.value()) && !this.removeOnSubmit && (somethingChanged || isNew)) {
                 try {
                     var objectOptions = {};
