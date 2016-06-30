@@ -959,19 +959,25 @@ RDFauthor = (function($) {
                     }
                     var triples = sortedTriples;
                 }
-                for (var i = 0, length = triples.length; i < length; i++) {
-                    // init statement
-                    var statement = new Statement(triples[i], {'graph': graph});
-                    // handle object label callback
-                    var element = RDFauthor.elementForStatement(statement);
-                    var label = null;
-                    if (typeof _options.objectLabel == 'function') {
-                        label = _options.objectLabel(element);
-                    }
+                if(RDFAUTHOR_START_FIX != "addProperty") {
+                    for (var i = 0, length = triples.length; i < length; i++) {
+                        // init statement
+                        var statement = new Statement(triples[i], {'graph': graph});
+                        // handle object label callback
+                        var element = RDFauthor.elementForStatement(statement);
+                        var label = null;
+                        if (typeof _options.objectLabel == 'function') {
+                            label = _options.objectLabel(element);
+                        }
 
-                    // init statement
-                    var statement2 = new Statement(triples[i], {'graph': graph, objectLabel: label, 'title': statement['_predicate']['label']});
-                    view.addWidget(statement2);
+                        // init statement
+                        var statement2 = new Statement(triples[i], {
+                            'graph': graph,
+                            objectLabel: label,
+                            'title': statement['_predicate']['label']
+                        });
+                        view.addWidget(statement2);
+                    }
                 }
             }
         }
@@ -2262,8 +2268,8 @@ RDFauthor = (function($) {
             } else {
                 _setRoot(null);
             }
-
-            this.eventTarget().trigger('rdfauthor.start');
+            //var target = this.eventTarget();
+            //this.eventTarget().trigger('rdfauthor.start');
             /* parse */
             _parse(function() {
                 /* display view */
