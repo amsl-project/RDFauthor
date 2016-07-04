@@ -338,7 +338,7 @@ RDFauthor.registerWidget({
                     databank.remove(rdfqTriple);
                 }
             }
-            if ((null !== this.value()) && !this.removeOnSubmit && (somethingChanged || isNew)) {
+            if ((null !== this.value()) && !this.removeOnSubmit) {
                 try {
                     var objectOptions = {};
                     if (null !== this.lang()) {

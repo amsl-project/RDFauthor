@@ -959,6 +959,9 @@ RDFauthor = (function($) {
                     }
                     var triples = sortedTriples;
                 }
+                if(typeof RDFAUTHOR_START_FIX == 'undefined'){
+                    RDFAUTHOR_START_FIX = "undefined";
+                }
                 if(RDFAUTHOR_START_FIX != "addProperty") {
                     for (var i = 0, length = triples.length; i < length; i++) {
                         // init statement
@@ -2297,6 +2300,7 @@ RDFauthor = (function($) {
             // try to query the knowledge base
             var options = {
                 callbackSuccess: function (data) {
+
                     if (!_predicateInfo.hasOwnProperty(predicateURI)) {
                         _predicateInfo[predicateURI] = {};
                     }
@@ -2307,17 +2311,28 @@ RDFauthor = (function($) {
                         // console.log('type', self.expandNamespace(response[i]['type'].value));
                         // add rdf:type info
                         if (_predicateInfo[predicateURI].hasOwnProperty(typeURI)) {
-                            _predicateInfo[predicateURI][typeURI].push(self.expandNamespace(response[i]['type'].value));
+                            _predicateInfo[predicateURI][typeURI] = self.expandNamespace(response[i]['type'].value);
                         } else if (response[i].hasOwnProperty('type')){
-                            _predicateInfo[predicateURI][typeURI] = [self.expandNamespace(response[i]['type'].value)];
+                            _predicateInfo[predicateURI][typeURI] = self.expandNamespace(response[i]['type'].value);
+                            _predicateInfo[predicateURI]["type"] = self.expandNamespace(response[i]['type'].value);
                         }
 
                         // add rdfs:range info
                         // console.log('range', self.expandNamespace(response[i]['range'].value));
+
                         if (_predicateInfo[predicateURI].hasOwnProperty(rangeURI)) {
-                            _predicateInfo[predicateURI][rangeURI].push(self.expandNamespace(response[i]['range'].value));
+                            RDFAUTHOR_DATATYPES_FIX[RDFAUTHOR_DEFAULT_SUBJECT] = [];
+                            RDFAUTHOR_DATATYPES_FIX[RDFAUTHOR_DEFAULT_SUBJECT][predicateURI] = [];
+                            RDFAUTHOR_DATATYPES_FIX[RDFAUTHOR_DEFAULT_SUBJECT][predicateURI][0] = {datatype : ""};
+                            RDFAUTHOR_DATATYPES_FIX[RDFAUTHOR_DEFAULT_SUBJECT][predicateURI][0].datatype = self.expandNamespace(response[i]['range'].value);
+                            _predicateInfo[predicateURI][rangeURI] = self.expandNamespace(response[i]['range'].value);
                         } else if (response[i].hasOwnProperty('range')) {
-                            _predicateInfo[predicateURI][rangeURI] = [self.expandNamespace(response[i]['range'].value)];
+                            RDFAUTHOR_DATATYPES_FIX[RDFAUTHOR_DEFAULT_SUBJECT] = [];
+                            RDFAUTHOR_DATATYPES_FIX[RDFAUTHOR_DEFAULT_SUBJECT][predicateURI] = [];
+                            RDFAUTHOR_DATATYPES_FIX[RDFAUTHOR_DEFAULT_SUBJECT][predicateURI][0] = {datatype : ""};
+                            RDFAUTHOR_DATATYPES_FIX[RDFAUTHOR_DEFAULT_SUBJECT][predicateURI][0].datatype = self.expandNamespace(response[i]['range'].value);
+                            _predicateInfo[predicateURI][rangeURI] = self.expandNamespace(response[i]['range'].value);
+        //                    RDFAUTHOR_DATATYPES_FIX[RDFAUTHOR_DEFAULT_SUBJECT][predicateURI][0].datatype = self.expandNamespace(response[i]['range'].value);//
                         }
 
                         if (response[i].hasOwnProperty('owlOneOf')) {
