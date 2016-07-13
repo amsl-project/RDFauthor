@@ -962,24 +962,37 @@ RDFauthor = (function($) {
                 if(typeof RDFAUTHOR_START_FIX == 'undefined'){
                     RDFAUTHOR_START_FIX = "undefined";
                 }
+                var singleTerm = undefined;
+                if(RDFAUTHOR_START_FIX == "editSingleTerm"){
+                    if(EDIT_SINGLE_PROPERTY.match("^amsl:")){
+                        singleTerm = EDIT_SINGLE_PROPERTY.replace("amsl:","http://vocab.ub.uni-leipzig.de/amsl/");
+                    }else{
+                        singleTerm = RDFauthor.expandNamespace(EDIT_SINGLE_PROPERTY);
+                    }
+
+                }
+
                 if(RDFAUTHOR_START_FIX != "addProperty") {
                     for (var i = 0, length = triples.length; i < length; i++) {
                         // init statement
                         var statement = new Statement(triples[i], {'graph': graph});
-                        // handle object label callback
-                        var element = RDFauthor.elementForStatement(statement);
-                        var label = null;
-                        if (typeof _options.objectLabel == 'function') {
-                            label = _options.objectLabel(element);
-                        }
+                        var predicate = statement['_predicate']['value']['_string'];
+                        if(RDFAUTHOR_START_FIX != "editSingleTerm" || (RDFAUTHOR_START_FIX == "editSingleTerm" && predicate == singleTerm)) {
+                            // handle object label callback
+                            var element = RDFauthor.elementForStatement(statement);
+                            var label = null;
+                            if (typeof _options.objectLabel == 'function') {
+                                label = _options.objectLabel(element);
+                            }
 
-                        // init statement
-                        var statement2 = new Statement(triples[i], {
-                            'graph': graph,
-                            objectLabel: label,
-                            'title': statement['_predicate']['label']
-                        });
-                        view.addWidget(statement2);
+                            // init statement
+                            var statement2 = new Statement(triples[i], {
+                                'graph': graph,
+                                objectLabel: label,
+                                'title': statement['_predicate']['label']
+                            });
+                            view.addWidget(statement2);
+                        }
                     }
                 }
             }

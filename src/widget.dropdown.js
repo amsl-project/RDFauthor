@@ -74,14 +74,20 @@ RDFauthor.registerWidget({
                         drop.push(response[i]['elem']['value']);
                     }
                     this.dropValues = dropalt;
+                    break;
                 }
             }
         }
         if(!found) {
-            var test = this.datatypeURI;
+            if(this.datatypeURI != undefined && this.datatypeURI.startsWith("http:")){
+                var type = this.datatypeURI;
+            }else {
+                var type = RDFAUTHOR_DATATYPES_FIX[RDFAUTHOR_DEFAULT_SUBJECT][this.statement._predicate.value._string][0].datatype;
+            }
+
             var query = 'PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> ';
             query += 'SELECT DISTINCT ?elem ?label WHERE {';
-            query += '    <' + RDFAUTHOR_DATATYPES_FIX[RDFAUTHOR_DEFAULT_SUBJECT][this.statement._predicate.value._string][0].datatype + '> <http://www.w3.org/2002/07/owl#oneOf> ?list . ';
+            query += '    <' + type + '> <http://www.w3.org/2002/07/owl#oneOf> ?list . ';
             query += '    ?list rdf:rest*/rdf:first ?elem . ';
             query += '    OPTIONAL {';
             query += '        ?elem <http://www.w3.org/2000/01/rdf-schema#label> ?label .';
