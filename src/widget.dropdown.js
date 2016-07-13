@@ -56,8 +56,13 @@ RDFauthor.registerWidget({
         for (var entry in RDFAUTHOR_DATATYPES_FIX) {
             var data = RDFAUTHOR_DATATYPES_FIX[entry];
             for (var key in data) {
-                var uri = this.datatypeURI.toLowerCase();
-                var k = key.toLowerCase();
+                var uri = this.datatypeURI;
+
+                var k = data[key][0]["range"];
+                if(k != undefined){
+                    k = data[key][0]["range"][0];
+                }
+
                 if (uri == k) {
                     found = true;
                     var data1 = data[key][0]["dropDownContent"];
