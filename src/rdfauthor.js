@@ -962,14 +962,11 @@ RDFauthor = (function($) {
                 if(typeof RDFAUTHOR_START_FIX == 'undefined'){
                     RDFAUTHOR_START_FIX = "undefined";
                 }
-                var singleTerm = undefined;
-                if(RDFAUTHOR_START_FIX == "editSingleTerm"){
-                    if(EDIT_SINGLE_PROPERTY.match("^amsl:")){
-                        singleTerm = EDIT_SINGLE_PROPERTY.replace("amsl:","http://vocab.ub.uni-leipzig.de/amsl/");
-                    }else{
-                        singleTerm = RDFauthor.expandNamespace(EDIT_SINGLE_PROPERTY);
-                    }
 
+                if(typeof EDIT_SINGLE_PROPERTY == 'undefined') {
+                    var singleTerm = undefined;
+                }else{
+                    var singleTerm = EDIT_SINGLE_PROPERTY;
                 }
 
                 if(RDFAUTHOR_START_FIX != "addProperty") {
