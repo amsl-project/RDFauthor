@@ -1842,7 +1842,15 @@ RDFauthor = (function($) {
             var predicateURI = statement.predicateURI();
             var datatypeURI  = statement.hasObject() ? statement.objectDatatype() : null;
             var ranges       = this.infoForPredicate(predicateURI, 'range');
+            if( Object.prototype.toString.call( ranges ) !== '[object Array]' ) {
+                var rangesArray = [ranges];
+                ranges = rangesArray;
+            }
             var types        = this.infoForPredicate(predicateURI, 'type');
+            if( Object.prototype.toString.call( types ) !== '[object Array]' ) {
+                var typesArray = [types];
+                types = typesArray;
+            }
             var owlOneOf     = this.infoForPredicate(predicateURI, 'owlOneOf');
             var displayAs    = this.infoForPredicate(predicateURI, 'displayAs');
             if(datatypeURI == null) {
