@@ -957,7 +957,8 @@ RDFauthor = (function($) {
                             }
                         }
                     }
-                    var triples = sortedTriples;
+                }else{
+                    var sortedTriples = _databanksByGraph[graph].triples();
                 }
                 if(typeof RDFAUTHOR_START_FIX == 'undefined'){
                     RDFAUTHOR_START_FIX = "undefined";
@@ -970,9 +971,9 @@ RDFauthor = (function($) {
                 }
 
                 if(RDFAUTHOR_START_FIX != "addProperty") {
-                    for (var i = 0, length = triples.length; i < length; i++) {
+                    for (var i = 0, length = sortedTriples.length; i < length; i++) {
                         // init statement
-                        var statement = new Statement(triples[i], {'graph': graph});
+                        var statement = new Statement(sortedTriples[i], {'graph': graph});
                         var predicate = statement['_predicate']['value']['_string'];
                         if(RDFAUTHOR_START_FIX != "editSingleTerm" || (RDFAUTHOR_START_FIX == "editSingleTerm" && predicate == singleTerm)) {
                             // handle object label callback
@@ -983,7 +984,7 @@ RDFauthor = (function($) {
                             }
 
                             // init statement
-                            var statement2 = new Statement(triples[i], {
+                            var statement2 = new Statement(sortedTriples[i], {
                                 'graph': graph,
                                 objectLabel: label,
                                 'title': statement['_predicate']['label']

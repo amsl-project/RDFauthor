@@ -16,6 +16,7 @@ RDFauthor.registerWidget({
         this.searchResults         = [];
         this.rangePattern          = '';
 
+
         this._domReady     = false;
         this._pluginLoaded = false;
         this._initialized  = false;
@@ -185,15 +186,12 @@ RDFauthor.registerWidget({
                 }
             }
 
-            if (!this.removeOnSubmit) {
+            if ((null !== this.value() && "" !== this.value()) && !this.removeOnSubmit) {
                 if (this.value() && this.value() !== null) {
                     var self = this;
                     try {
                         var newStatement = this.statement.copyWithObject({
                             value: '<' + this.value() + '>',
-                            // value: ( self.statement._object.type == 'uri' ) ? '<' + this.value() + '>' 
-                                                                            // : '_:' + this.value(),
-                            // type: ( self.statement._object.type == 'bnode' ) ? 'bnode' : 'uri'
                             type: 'uri'
                         });
                         databank.add(newStatement.asRdfQueryTriple());
@@ -210,8 +208,6 @@ RDFauthor.registerWidget({
                 else {
                     return true;
                 }
-            }else{
-                var test = 0;
             }
         }
         return true;
@@ -287,14 +283,14 @@ RDFauthor.registerWidget({
             for (var key in data) {
                 var uri = self.statement.predicateURI();
                 if(uri == key){
-                    found = true;
                     if(data[key][0]["range"] == null){
                         break;
                     }
                     if(data[key][0]["range"]){
                         $(data[key][0]["range"]).each(function (i) {
-                            if(data[key][0]["range"][i] != null && data[key][0]["range"][i].value != "") {
-                                rangePattern += '?uri a <' + data[key][0]["range"][i].value + '> . \n';
+                            if(data[key][0]["range"][i] != null && data[key][0]["range"][i] != "") {
+                                found = true;
+                                rangePattern += '?uri a <' + data[key][0]["range"][i] + '> . \n';
                             }
                         });
                         break;
@@ -350,15 +346,19 @@ RDFauthor.registerWidget({
             }
             if (self._options.filterRange) {
                 var range = RDFauthor.infoForPredicate(self.statement.predicateURI(), 'range');
-                if (range.length > 0) {
-                    rangePattern = '?uri a <' + range.join('> .\n?uri a <') + '> .\n';
+                if( Object.prototype.toString.call( range ) === '[object Array]' ) {
+                    if (range.length > 0) {
+                        rangePattern = '?uri a <' + range.join('> .\n?uri a <') + '> .\n';
+                        domainPattern = 'OPTIONAL {?uri rdfs:domain ?domain .}\n';
+                    } else {
+                        rangePattern = self.rangePattern;
+                    }
+                }else{
+                    rangePattern = '?uri a <' + range + '> .\n';
                     domainPattern = 'OPTIONAL {?uri rdfs:domain ?domain .}\n';
-                } else {
-                    rangePattern = self.rangePattern;
                 }
             }
-            var query = prologue + '\nSELECT DISTINCT ?uri ?literal ?domain ?type\
-                FROM <' + this.statement.graphURI() + '>\
+            var query = prologue + '\nSELECT DISTINCT ?uri ?literal ?domain\
                 WHERE {\
                     ' + uriPattern + '\
                     ' + propertyPattern + '\
@@ -393,7 +393,6 @@ RDFauthor.registerWidget({
                                         label = binding['literal']['value'];
                                     }
 
-                                    if ($.inArray(uri,self.element().data('objects')) == -1) {
                                         if (undefined == resources[uri]) {
                                             resources[uri] = true;
 
@@ -422,7 +421,7 @@ RDFauthor.registerWidget({
                                                 });
                                             }
                                         }
-                                    }
+
                                 }
                             }
                         }
@@ -650,7 +649,7 @@ RDFauthor.registerWidget({
             self.element().parent().parent().parent().parent().parent().parent().find('input').each(function() {
               self.element().data('objects').push($(this).attr('title'));
             });
-            
+
             //set human-readable label for uri
             if (self.isURI(self.statement.objectValue()) && self._options.labels) {
                 self.getLabel(self.statement.objectValue(), function(label, hasLabel) {
@@ -694,7 +693,8 @@ RDFauthor.registerWidget({
             }
 
             var self = this;
-            this.element().autocomplete({
+            var t1 = this.element();
+            t1.autocomplete({
                 minLength: self._options.minChars,
                 delay: self._options.delay,
                 max: self._options.max,
@@ -754,8 +754,7 @@ RDFauthor.registerWidget({
                     // prevent jQuery UI default
                     return false;
                 }
-            })
-            .keydown(function (e) {
+            }).keydown(function (e) {
                 if ((e.which === 13) && self._options.selectOnReturn) {
                     self.element().data('autocomplete').destroy();
                     var val = jQuery(e.target).val();
@@ -775,22 +774,25 @@ RDFauthor.registerWidget({
                 } else if (e.which === 27) {
                     e.stopPropagation();
                 }
-            })
-            .data('autocomplete')._renderItem = function(ul, item) {
-                // TODO: item sometimes undefiend
-                if (item) {
-                    return jQuery('<li></li>')
-                        .data('item.autocomplete', item)
-                        .append('<a class="resource-edit-item" style="background-color: ' + self.sources[item.source]['color'] + ';\
+            });
+            var t2 = t1.data('autocomplete');
+            if(t2 != undefined) {
+                t1.data('autocomplete')._renderItem = function (ul, item) {
+                    // TODO: item sometimes undefiend
+                    if (item) {
+                        return jQuery('<li></li>')
+                            .data('item.autocomplete', item)
+                            .append('<a class="resource-edit-item" style="background-color: ' + self.sources[item.source]['color'] + ';\
                                 border:1px solid ' + self.sources[item.source]['border'] + ';">\
                             <span class="resource-edit-source">' + self.sources[item.source]['label'] + '</span>\
                             <span class="resource-edit-label">' + self.highlight(item.label, self.searchTerm) + '</span>\
                             <span class="resource-edit-uri">' + self.highlight(item.value, self.searchTerm) + '</span>\
                         </a>')
-                        .css('width', self.element().innerWidth() - 4)
-                        .appendTo(ul);
-                }
-            };
+                            .css('width', self.element().innerWidth() - 4)
+                            .appendTo(ul);
+                    }
+                };
+            }
 
             this._initialized  = true;
             this._autocomplete = this.element().data('autocomplete');
