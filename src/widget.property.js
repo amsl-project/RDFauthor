@@ -716,6 +716,7 @@ RDFauthor.registerWidget({
                 $('#propertypicker a[name="propertypicker"]').die('click').live('click', function (event) {
                     $('.property-add').css("display", "none");
                     event.preventDefault();
+
                     var seletedProperties = $('#propertypicker input[name="abc"]');
 
                     var propertiesChecked = false;
@@ -738,9 +739,94 @@ RDFauthor.registerWidget({
                             return;
                         }
                     }
-                    var resourceUri = $(this).attr('about');
+                    var predicateUri = $(this).attr('about');
+
+                    EDIT_SINGLE_PROPERTY = predicateUri;
+                    if(RDFAUTHOR_START_FIX == "addProperty") {
+                        var serviceURI = urlBase + 'service/rdfauthorinit';
+                        var prototypeResource = selectedResource.URI;
+                        RDFauthor.cancel();
+
+                        $.getJSON(serviceURI, {
+                            mode: 'edit',
+                            uri: prototypeResource
+                        }, function(data) {
+                            if (data.hasOwnProperty('propertyOrder')) {
+                                var propertyOrder = data.propertyOrder;
+                                delete data.propertyOrder;
+                            }
+                            else {
+                                var propertyOrder = null;
+                            }
+
+                            var addPropertyValues = data['addPropertyValues'];
+                            var addOptionalPropertyValues = data['addOptionalPropertyValues'];
+                            RDFAUTHOR_DISPLAY_FIX = data['displayProperties'];
+                            RDFAUTHOR_DATATYPES_FIX_ADDITIONAL_DATA = data['additionalData'];
+                            delete data['addPropertyValues'];
+                            delete data['addOptionalPropertyValues'];
+                            delete data.additionalData;
+                            delete data.displayProperties;
+                            // get default resource uri for subjects in added statements (issue 673)
+                            // grab first object key
+                            for (var subjectUri in data) {break;};
+                            populateRDFauthor(data, true, subjectUri, selectedGraph.URI);
+                            RDFauthor.setOptions({
+                                onSubmitSuccess: function () {
+                                    // var mainInnerContent = $('.window .content.has-innerwindows').eq(0).find('.innercontent');
+                                    // mainInnerContent.load(document.URL);
+
+                                    // tell RDFauthor that page content has changed
+                                    // RDFauthor.invalidatePage();
+
+                                    $('.edit').each(function() {
+                                        $(this).fadeOut(effectTime);
+                                    });
+                                    $('.edit-enable').removeClass('active');
+
+                                    // HACK: reload whole page after 1000 ms
+                                    /*
+                                     window.setTimeout(function () {
+                                     window.location.href = window.location.href;
+                                     }, 500);
+                                     */
+                                },
+                                onCancel: function () {
+                                    $('.edit').each(function() {
+                                        $(this).fadeOut(effectTime);
+                                    });
+                                    $('.edit-enable').removeClass('active');
+                                },
+                                saveButtonTitle: 'Save Changes',
+                                cancelButtonTitle: 'Cancel',
+                                loadOwStylesheet: false,
+                                title: $('.section-mainwindows .window').eq(0).children('.title').eq(0).text(),
+                                viewOptions: {
+                                    // no statements needs popover
+                                    type: $('.section-mainwindows table.Resource').length ? RDFAUTHOR_VIEW_MODE : 'popover',
+                                    container: function (statement) {
+                                        var element = RDFauthor.elementForStatement(statement);
+                                        var parent  = $(element).closest('div');
+
+                                        if (!parent.hasClass('ontowiki-processed')) {
+                                            parent.children().each(function () {
+                                                $(this).hide();
+                                            });
+                                            parent.addClass('ontowiki-processed');
+                                        }
+
+                                        return parent.get(0);
+                                    }
+                                }
+                            });
+                            //workaround: don't load widget
+                            RDFauthor.start($('head'));
+                            $('.edit-enable').addClass('active');
+                            //setTimeout("addProperty()",500);
+                        });
+                    }
                     var list = new Array();
-                    list.push(resourceUri);
+                    list.push(predicateUri);
                     var keydownEvent = $.Event("keydown");
                     keydownEvent.which = 13;
                     self.element().val(JSON.stringify(list)).trigger(keydownEvent);

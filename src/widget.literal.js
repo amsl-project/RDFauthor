@@ -328,7 +328,7 @@ RDFauthor.registerWidget({
                     this.statement.objectDatatype() !== this.datatype()
                 )
             );
-
+            somethingChanged = true;
             // new statement must not be empty
             var isNew = !this.statement.hasObject() && (null !== this.value());
 

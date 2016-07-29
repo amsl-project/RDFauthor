@@ -975,7 +975,7 @@ RDFauthor = (function($) {
                         // init statement
                         var statement = new Statement(sortedTriples[i], {'graph': graph});
                         var predicate = statement['_predicate']['value']['_string'];
-                        if(RDFAUTHOR_START_FIX != "editSingleTerm" || (RDFAUTHOR_START_FIX == "editSingleTerm" && predicate == singleTerm)) {
+                        if(RDFAUTHOR_START_FIX != "editSingleTerm" || (RDFAUTHOR_START_FIX == "editSingleTerm" && predicate == singleTerm) || (RDFAUTHOR_START_FIX == "addProperty" && predicate == singleTerm)) {
                             // handle object label callback
                             var element = RDFauthor.elementForStatement(statement);
                             var label = null;
