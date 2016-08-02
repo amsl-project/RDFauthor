@@ -141,15 +141,16 @@ SubjectGroup.prototype = {
                             subject: '<' + self._subjectURI + '>',
                             predicate: '<' + uri + '>',
                             object: {
-                                value: '',
+                                value: defaultValueForSchemaType(datatype),
                                 options: {
-                                   datatype: "http://www.w3.org/2001/XMLSchema#date"
+                                   datatype: datatype
                                 }
                             }
                         }, {
                             title: label,
                             graph: self._graphURI
                         });
+                        statement._object.value = '';
                     }
                     else {
                         statement = new Statement({
