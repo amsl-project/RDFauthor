@@ -92,9 +92,9 @@ InlineController.prototype = {
             if (predicateCount == 1) {
                 element.removeAttr('class');
                 element.attr('class', 'has-contextmenu-area');
-                element.children('.contextmenu').removeAttr('style');
-                element.children('.bullets-none').removeAttr('style');
             }
+            element.children('.contextmenu').removeAttr('style');
+            element.children('.bullets-none').removeAttr('style');
             if (element.find('ul').length == 0) {
                 var contextmenu='<div class="contextmenu"><a class="item rdfauthor-edit-property" onclick="editProperty(event)"> \
                     <span class="icon icon-edit" title="Edit Values"> \
@@ -106,56 +106,62 @@ InlineController.prototype = {
 
             var widgetCount = 0;
             for (var wid in this._rows[index]._widgets) {
-                widgetCount += 1;
+
                 var widget = this._rows[index]._widgets[wid];
-                if (widget.removeOnSubmit) {
-                    continue;
-                }
-                var widgetType;
-                try {
-                    widgetType = this._rows[index]._widgets[wid].getWidgetType();
-                }
-                catch (exception) {
-                    widgetType = null;
-                }
-                var newVal = widget.value();
+                var notCorrupted = widget.value();
+                if (notCorrupted != null) {
+                    widgetCount += 1;
+                    if (widget.removeOnSubmit) {
+                        continue;
+                    }
+                    var widgetType;
+                    try {
+                        widgetType = this._rows[index]._widgets[wid].getWidgetType();
+                    }
+                    catch (exception) {
+                        widgetType = null;
+                    }
+                    var newVal = widget.value();
 
-                if (widgetCount > 1) {
-                    var li = element.find('ul li:eq(' + (liCount - 1) + ')');
-                    var newLi = $(li.clone([true, true]));
-                    newLi.removeAttr('id');
-                    li.after(newLi);
-                }
-                var li = element.find('ul li:eq(' + liCount + ')');
-                liCount += 1;
+                    if (widgetCount > 1) {
+                        var li = element.find('ul li:eq(' + (liCount - 1) + ')');
+                        var newLi = $(li.clone([true, true]));
+                        newLi.removeAttr('id');
+                        li.after(newLi);
+                    }
+                    var li = element.find('ul li:eq(' + liCount + ')');
+                    liCount += 1;
 
-                if ($.inArray(widget.value(), updateValues) != -1) {
-                    var success = true;
-                    updateValues = $.grep(updateValues, function(value) { return value != widget.value() } );
-                }
-                else {
-                    var success = false;
-                }
-                li.removeAttr('rdfauthor-remove');
+                    if ($.inArray(widget.value(), updateValues) != -1) {
+                        var success = true;
+                        updateValues = $.grep(updateValues, function (value) {
+                            return value != widget.value()
+                        });
+                    }
+                    else {
+                        var success = false;
+                    }
+                    li.removeAttr('rdfauthor-remove');
 
-                switch(widgetType) {
-                    case 'literal':
-                    case 'resource':
-                    case 'datetime':
-                    case 'dropdown':
-                        this._rows[index]._widgets[wid].resetMarkup(li, success);
-                        break;
+                    switch (widgetType) {
+                        case 'literal':
+                        case 'resource':
+                        case 'datetime':
+                        case 'dropdown':
+                            this._rows[index]._widgets[wid].resetMarkup(li, success);
+                            break;
 
-                    default:
-                        forceReload = true;
-                        console.log('Falling back to reload!');
+                        default:
+                            forceReload = true;
+                            console.log('Falling back to reload!');
+                    }
                 }
-            }
-            if(forceReload === true) {
-                $('body').append("<div class='modal-wrapper spinner-wrapper'>" + '</div>');
-                window.setTimeout(function () {
-                    window.location.href = window.location.href;
-                }, 1000);
+                if (forceReload === true) {
+                    $('body').append("<div class='modal-wrapper spinner-wrapper'>" + '</div>');
+                    window.setTimeout(function () {
+                        window.location.href = window.location.href;
+                    }, 1000);
+                }
             }
         }
         /*

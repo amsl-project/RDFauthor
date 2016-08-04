@@ -1188,28 +1188,7 @@ RDFauthor = (function($) {
                     // REST style
                     var addedJSON = $.rdf.dump(added.triples());
                     //TODO enrich addedJson with data types
-                    var data = RDFAUTHOR_DATATYPES_FIX;
 
-                    for (var currentSubject in addedJSON) {
-                        for (var currentProperty in addedJSON[currentSubject]) {
-                            for (var currentReferenceSubject in data) {
-                                for (var currentReferenceProperty in data[currentReferenceSubject]) {
-                                    if(currentReferenceProperty == currentProperty){
-                                        var objects = addedJSON[currentSubject][currentProperty];
-                                        var referenceObjects = data[currentReferenceSubject][currentReferenceProperty];
-                                        for (var i = 0; i < objects.length; i++) {
-                                            var specObj = objects[i];
-                                            var specReferenceObj = referenceObjects[i];
-                                            if(specReferenceObj !== undefined && specReferenceObj.datatype){
-                                                specObj.datatype = specReferenceObj.datatype;
-                                                specObj.type = "literal";
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
                     var removedJSON = $.rdf.dump(removed.triples());
                     var indexes   = _buildHashedObjectIndexes(removed.triples(), g);
                     // , {format: 'application/json', serialize: true})
