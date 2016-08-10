@@ -86,7 +86,11 @@ RDFauthor.registerWidget({
     resetMarkup: function(li, success) {
         var predicate = this.statement._predicate.value._string;
         var datatype = this.statement.objectDatatype();
-        html = RDFAuthorTools.updateStatus('<span>' + this.value() + '</span>', success);
+        if(this.value == null){
+            var html = RDFAuthorTools.updateStatus('<span style="color: grey;">deleted</span>', success, true);
+        }else {
+            var html = RDFAuthorTools.updateStatus('<span>' + this.value() + '</span>', success);
+        }
         li.html(html);
         li.attr('datatype', datatype);
         li.attr('content', this.value());

@@ -149,11 +149,15 @@ RDFauthor.registerWidget({
             var predicate = this.statement._predicate.value._string;
             var href = RDFAUTHOR_BASE.split('/').slice(0, -3).join('/') + '/view/?r=' + this.value();
             if (success) {
-                var html = '<a resource="' + this.value() + '" \
+                if(this.value() == null){
+                    var html = '<span style="color: grey;">deleted</span>';
+                }else {
+                    var html = '<a resource="' + this.value() + '" \
                     class="expandable hasMenu Resource" \
                     rel="' + predicate + '" \
                     href="' + href + '">\
                     ' + label + '</a>';
+                }
             }
             else {
                 var html = '<span>' + this.value() + '</span>';

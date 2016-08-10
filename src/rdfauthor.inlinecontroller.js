@@ -68,14 +68,13 @@ InlineController.prototype = {
             if ((predicateURI == this._rows[index]._predicateURI) && (subjectURI == this._rows[index]._subjectURI)) {
                 predicateCount += 1;
             }
-            else {
-                element.find('ul li').attr('rdfauthor-remove', true);
-                predicateURI = this._rows[index]._predicateURI;
-                subjectURI = this._rows[index]._subjectURI;
-                predicateCount = 1;
-                liCount = 0;
-                var updateValues = values[predicateURI];
-            }
+            element.find('ul li').attr('rdfauthor-remove', true);
+            predicateURI = this._rows[index]._predicateURI;
+            subjectURI = this._rows[index]._subjectURI;
+            predicateCount = 1;
+            liCount = 0;
+            var updateValues = values[predicateURI];
+
             // This will force a reload as soon as a type is added. This might or
             // might not be desirable. On the one hand, as soon as a type is given
             // other properties will be suggested (especially with templates).
@@ -108,12 +107,7 @@ InlineController.prototype = {
             for (var wid in this._rows[index]._widgets) {
 
                 var widget = this._rows[index]._widgets[wid];
-                var notCorrupted = widget.value();
-                if (notCorrupted != null) {
                     widgetCount += 1;
-                    if (widget.removeOnSubmit) {
-                        continue;
-                    }
                     var widgetType;
                     try {
                         widgetType = this._rows[index]._widgets[wid].getWidgetType();
@@ -121,7 +115,6 @@ InlineController.prototype = {
                     catch (exception) {
                         widgetType = null;
                     }
-                    var newVal = widget.value();
 
                     if (widgetCount > 1) {
                         var li = element.find('ul li:eq(' + (liCount - 1) + ')');
@@ -130,6 +123,10 @@ InlineController.prototype = {
                         li.after(newLi);
                     }
                     var li = element.find('ul li:eq(' + liCount + ')');
+                    if (widget.removeOnSubmit) {
+                        li.attr('rdfauthor-remove', true);
+
+                    }
                     liCount += 1;
 
                     if ($.inArray(widget.value(), updateValues) != -1) {
@@ -139,7 +136,12 @@ InlineController.prototype = {
                         });
                     }
                     else {
-                        var success = false;
+                        if(widget.value() == null){
+                            var success = true;
+                        }else{
+                            var success = false;
+                        }
+
                     }
                     li.removeAttr('rdfauthor-remove');
 
@@ -155,7 +157,6 @@ InlineController.prototype = {
                             forceReload = true;
                             console.log('Falling back to reload!');
                     }
-                }
                 if (forceReload === true) {
                     $('body').append("<div class='modal-wrapper spinner-wrapper'>" + '</div>');
                     window.setTimeout(function () {
@@ -175,6 +176,7 @@ InlineController.prototype = {
         // remove all widgets that RDFauthor has opened
         $('div.rdfauthor-predicate-row').remove();
         $('li[rdfauthor-remove=true]').remove();
+        window.location.href = window.location.href;
     },
 
     cancel: function () {

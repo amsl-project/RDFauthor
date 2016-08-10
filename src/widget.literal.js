@@ -222,10 +222,10 @@ RDFauthor.registerWidget({
     resetMarkup: function(li, success) {
         var predicate = this.statement._predicate.value._string;
         if (this.value() == null) {
-            html = RDFAuthorTools.updateStatus('<span></span>', success, true);
+            var html = RDFAuthorTools.updateStatus('<span style="color: grey;">deleted</span>', success, true);
         }
         else {
-            html = RDFAuthorTools.updateStatus('<span>' + this.value() + '</span>', success);
+            var html = RDFAuthorTools.updateStatus('<span>' + this.value() + '</span>', success);
         }
         li.html(html);
         li.attr('content', this.value());
