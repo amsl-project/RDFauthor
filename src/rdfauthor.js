@@ -944,6 +944,9 @@ RDFauthor = (function($) {
         }
         /* make sure, view has predicate info available */
         for (var graph in _databanksByGraph) {
+            if(graph != RDFAUTHOR_DEFAULT_GRAPH){
+                continue;
+            }
             var updateEndpoint = RDFauthor.updateURIForGraph(graph);
             if (undefined !== updateEndpoint) {
                 var triples = _databanksByGraph[graph].triples();
@@ -957,7 +960,8 @@ RDFauthor = (function($) {
                             }
                         }
                     }
-                }else{
+                }
+                else{
                     var sortedTriples = _databanksByGraph[graph].triples();
                 }
                 if(typeof RDFAUTHOR_START_FIX == 'undefined'){
@@ -989,7 +993,9 @@ RDFauthor = (function($) {
                                 objectLabel: label,
                                 'title': statement['_predicate']['label']
                             });
-                            view.addWidget(statement2);
+                            if(predicate != "http://www.w3.org/1999/02/22-rdf-syntax-ns#type") {
+                                view.addWidget(statement2);
+                            }
                         }
                     }
                 }
