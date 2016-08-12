@@ -568,32 +568,33 @@ RDFauthor = (function($) {
         var valueObject = {};
         var subj = '';
         var pred = '';
-
-        for (var index in _view._rows) {
-            var subject = _view._rows[index]._subjectURI;
-            var predicate = _view._rows[index]._predicateURI;
-            if ((pred != predicate) || (subj != subject)) {
-                pred = predicate;
-                subj = subject;
-                var query = "select ?v where { <" + subject + "> <" + predicate + "> ?v . }";
-                RDFauthor.queryGraph(graph, query, {
-                    callbackSuccess: function (result) {
-                        if (result && result['results'] && result['results']['bindings']) {
-                            var bindings = result['results']['bindings'];
-                            for (var i = 0; i < bindings.length; i++) {
-                                var row = bindings[i];
-                                values.push(row['v'].value);
+        if(_view != null) {
+            for (var index in _view._rows) {
+                var subject = _view._rows[index]._subjectURI;
+                var predicate = _view._rows[index]._predicateURI;
+                if ((pred != predicate) || (subj != subject)) {
+                    pred = predicate;
+                    subj = subject;
+                    var query = "select ?v where { <" + subject + "> <" + predicate + "> ?v . }";
+                    RDFauthor.queryGraph(graph, query, {
+                        callbackSuccess: function (result) {
+                            if (result && result['results'] && result['results']['bindings']) {
+                                var bindings = result['results']['bindings'];
+                                for (var i = 0; i < bindings.length; i++) {
+                                    var row = bindings[i];
+                                    values.push(row['v'].value);
+                                }
                             }
-                        }
-                    },
-                    callbackError: function () {
-                        // SPARQL error
-                    },
-                    // synchronous
-                    async: false
-                })
-                valueObject[pred] = values;
-                values = new Array();
+                        },
+                        callbackError: function () {
+                            // SPARQL error
+                        },
+                        // synchronous
+                        async: false
+                    })
+                    valueObject[pred] = values;
+                    values = new Array();
+                }
             }
         }
         return valueObject;
@@ -1239,7 +1240,9 @@ RDFauthor = (function($) {
                         $.ajaxSetup();
                     } else {
                         _view.resetToUnedit(_fetchValues());
-                        _view.hide(true);
+                        if(_view != null){
+                            _view.hide(true);
+                        }
                         _callIfIsFunction(_options.onSubmitSuccess);
                         RDFauthor.reset();
                     }

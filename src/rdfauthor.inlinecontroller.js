@@ -68,11 +68,9 @@ InlineController.prototype = {
             if ((predicateURI == this._rows[index]._predicateURI) && (subjectURI == this._rows[index]._subjectURI)) {
                 predicateCount += 1;
             }
-            element.find('ul li').attr('rdfauthor-remove', true);
             predicateURI = this._rows[index]._predicateURI;
             subjectURI = this._rows[index]._subjectURI;
             predicateCount = 1;
-            liCount = 0;
             var updateValues = values[predicateURI];
 
             // This will force a reload as soon as a type is added. This might or
@@ -125,7 +123,6 @@ InlineController.prototype = {
                     var li = element.find('ul li:eq(' + liCount + ')');
                     if (widget.removeOnSubmit) {
                         li.attr('rdfauthor-remove', true);
-
                     }
                     liCount += 1;
 
@@ -143,7 +140,6 @@ InlineController.prototype = {
                         }
 
                     }
-                    li.removeAttr('rdfauthor-remove');
 
                     switch (widgetType) {
                         case 'literal':
@@ -176,7 +172,6 @@ InlineController.prototype = {
         // remove all widgets that RDFauthor has opened
         $('div.rdfauthor-predicate-row').remove();
         $('li[rdfauthor-remove=true]').remove();
-        window.location.href = window.location.href;
     },
 
     cancel: function () {
