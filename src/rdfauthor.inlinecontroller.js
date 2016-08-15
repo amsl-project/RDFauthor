@@ -64,6 +64,9 @@ InlineController.prototype = {
 
         for (var index in this._rows) {
             var element = jQuery('#' + this._rows[index].cssID()).parent();
+            if(element.length == 0 && RDFAUTHOR_START_FIX == "editSingleTerm"){
+                continue;
+            }
             // test if there is a value for a new predicate
             if ((predicateURI == this._rows[index]._predicateURI) && (subjectURI == this._rows[index]._subjectURI)) {
                 predicateCount += 1;
@@ -100,7 +103,9 @@ InlineController.prototype = {
                 </a></div>';
                 element.append('<div class="has-contextmenu-area">' + contextmenu + '<ul class="bullets-none"><li></li></ul></div>');
             }
-
+            if(RDFAUTHOR_START_FIX != "editSingleTerm") {
+                liCount = 0;
+            }
             var widgetCount = 0;
             for (var wid in this._rows[index]._widgets) {
 
