@@ -131,14 +131,25 @@ InlineController.prototype = {
                     }
                     liCount += 1;
 
-                    if ($.inArray(widget.value(), updateValues) != -1) {
+                    // in case of a decimal type a ending ".0" gets added automatically when editing.
+                    // this needs to be removed in order to check if the value occurs in the ontowiki response
+                    if (typeof widget.statement._object.datatype != 'undefined'){
+                        var datatype1 = widget.statement._object.datatype._string;
+                    }else{
+                        var datatype1 = "undefined";
+                    }
+                    var value1 = widget.value();
+                    if(datatype1 == "http://www.w3.org/2001/XMLSchema#decimal" && value1 != null && value1.endsWith(".0")){
+                        value1 = value1.replace(".0", "");
+                    }
+                    if ($.inArray(value1, updateValues) != -1) {
                         var success = true;
                         updateValues = $.grep(updateValues, function (value) {
-                            return value != widget.value()
+                            return value != value1
                         });
                     }
                     else {
-                        if(widget.value() == null){
+                        if(value1 == null){
                             var success = true;
                         }else{
                             var success = false;
