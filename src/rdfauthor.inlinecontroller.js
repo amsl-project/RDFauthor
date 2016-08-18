@@ -131,13 +131,18 @@ InlineController.prototype = {
                     }
                     liCount += 1;
 
-                    // in case of a decimal type a ending ".0" gets added automatically when editing.
+                    // in case of a decimal type the ending ".0" gets added automatically when editing.
                     // this needs to be removed in order to check if the value occurs in the ontowiki response
-                    if (typeof widget.statement._object.datatype != 'undefined'){
+                    if (widget.statement._object !=  null && typeof widget.statement._object.datatype != 'undefined'){
                         var datatype1 = widget.statement._object.datatype._string;
                     }else{
-                        var datatype1 = "undefined";
+                        if(typeof RDFAUTHOR_DATATYPES_FIX_ADDITIONAL_DATA[widget.statement._predicate.value._string] != "undefined") {
+                            var datatype1 = RDFAUTHOR_DATATYPES_FIX_ADDITIONAL_DATA[widget.statement._predicate.value._string][0]['range'][0]
+                        }else{
+                            var datatype1 = "undefined";
+                        }
                     }
+
                     var value1 = widget.value();
                     if(datatype1 == "http://www.w3.org/2001/XMLSchema#decimal" && value1 != null && value1.endsWith(".0")){
                         value1 = value1.replace(".0", "");
@@ -148,14 +153,9 @@ InlineController.prototype = {
                             return value != value1
                         });
                     }
-                    else {
-                        if(value1 == null){
-                            var success = true;
-                        }else{
-                            var success = false;
-                        }
-
-                    }
+                if(value1 == null){
+                    var success = true;
+                }
 
                     switch (widgetType) {
                         case 'literal':
