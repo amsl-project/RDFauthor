@@ -336,14 +336,6 @@ RDFauthor = (function($) {
                 _extractedByGraph[g] = $.rdf.databank();
             }
             
-            /* FIXME: explicit triples hack */
-            if (g in _specialStatements['explicit']) {
-                for (var i = 0; i < _specialStatements['explicit'][g].length; i++) {
-                    var specialStatement = _specialStatements['explicit'][g][i];
-                    _extractedByGraph[g].remove(specialStatement.asRdfQueryTriple());
-                }
-            }
-            
             /* FIXME: hidden triples hack */
             if (g in _specialStatements['hidden']) {
                 for (var i = 0; i < _specialStatements['hidden'][g].length; i++) {
@@ -1223,8 +1215,9 @@ RDFauthor = (function($) {
                                 url: updateURI, 
                                 data: {
                                     'named-graph-uri': g, 
-                                    'insert': addedJSON ? $.toJSON(addedJSON) : '{}', 
-                                    'delete': indexes.plain ? $.toJSON(indexes.plain) : '{}', 
+                                    'insert': addedJSON ? $.toJSON(addedJSON) : '{}',
+                                    'delete': removedJSON ? $.toJSON(removedJSON) : '{}',
+                                    //'delete': indexes.plain ? $.toJSON(indexes.plain) : '{}',
                                     'delete_hashed': indexes.hashed ? $.toJSON(indexes.hashed) : '{}'
                                 },
                                 dataType: 'json'
