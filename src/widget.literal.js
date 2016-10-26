@@ -351,6 +351,7 @@ RDFauthor.registerWidget({
                         options: objectOptions,
                         type: 'literal'
                     });
+                    newStatement.objectValue(trimmedValue);
                     databank.add(newStatement.asRdfQueryTriple());
                 } catch (e) {
                     var msg = e.message ? e.message : e;
