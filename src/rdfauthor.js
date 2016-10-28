@@ -213,6 +213,15 @@ RDFauthor = (function($) {
             }
             try {
                 // TODO: …
+                // If an integer value is of type decimal and ends on 0 the instantiation of statement results in a
+                // wrong value. Eg: 150 becomes 15 (or 15.0)
+                // Thus we need to add ".0" on integer values to explicitly make them decimal
+                if(triple.object.datatype != undefined && triple.object.datatype.uri != undefined) {
+                    var type = triple.object.datatype.uri;
+                    if(type == "http://www.w3.org/2001/XMLSchema#decimal" && !triple.object.value.includes(".")){
+                        triple.object.value = triple.object.value + ".0";
+                    }
+                }
                 statement = new Statement(triple, {'graph': graph, objectLabel: label});
                 _statementOptions[statement.asRdfQueryTriple()] = {'graph': graph, objectLabel: label};
             } catch (e) {

@@ -338,6 +338,15 @@ RDFauthor.registerWidget({
                     databank.remove(rdfqTriple);
                 }
             }
+
+            // If an integer value is of type decimal and ends on 0 the instantiation of statement results in a wrong
+            // value. Eg: 150 becomes 15 (or 15.0)
+            // Thus we need to add ".0" on integer values to explicitly make them decimal
+            var type = this.statement._object.datatype._string;
+            if(type != null && type == "http://www.w3.org/2001/XMLSchema#decimal" && !trimmedValue.includes(".")){
+                trimmedValue = trimmedValue + ".0";
+            }
+
             if ((null !== this.value() && "" !== this.value()) && !this.removeOnSubmit) {
                 try {
                     var objectOptions = {};
@@ -351,7 +360,6 @@ RDFauthor.registerWidget({
                         options: objectOptions,
                         type: 'literal'
                     });
-                    newStatement.objectValue(trimmedValue);
                     databank.add(newStatement.asRdfQueryTriple());
                 } catch (e) {
                     var msg = e.message ? e.message : e;
