@@ -320,6 +320,20 @@ RDFauthor.registerWidget({
             if(this.value() !== null && this.value() !== undefined){
                 trimmedValue = this.value().trim();
             }
+            // If an integer value is of type decimal and ends on 0 the instantiation of statement results in a wrong
+            // value. Eg: 150 becomes 15 (or 15.0)
+            // Thus we need to add ".0" on integer values to explicitly make them decimal
+            var type = this.datatype();
+            if(trimmedValue != null && type != null && type == "http://www.w3.org/2001/XMLSchema#decimal" ){
+                if(!trimmedValue.includes(".")){
+                    trimmedValue = trimmedValue + ".0";
+                }else{
+                    while(trimmedValue.endsWith("0")){
+                        trimmedValue = trimmedValue.substring(0, trimmedValue.length - 1);
+                    }
+                }
+
+            }
             var somethingChanged = (
                 this.statement.hasObject() && (
                     // existing statement should have been edited
@@ -337,14 +351,6 @@ RDFauthor.registerWidget({
                 if (rdfqTriple) {
                     databank.remove(rdfqTriple);
                 }
-            }
-
-            // If an integer value is of type decimal and ends on 0 the instantiation of statement results in a wrong
-            // value. Eg: 150 becomes 15 (or 15.0)
-            // Thus we need to add ".0" on integer values to explicitly make them decimal
-            var type = this.statement._object.datatype._string;
-            if(type != null && type == "http://www.w3.org/2001/XMLSchema#decimal" && !trimmedValue.includes(".")){
-                trimmedValue = trimmedValue + ".0";
             }
 
             if ((null !== this.value() && "" !== this.value()) && !this.removeOnSubmit) {
