@@ -144,8 +144,16 @@ InlineController.prototype = {
                     }
 
                     var value1 = widget.value();
-                    if(datatype1 == "http://www.w3.org/2001/XMLSchema#decimal" && value1 != null && value1.endsWith(".0")){
-                        value1 = value1.replace(".0", "");
+                    if(datatype1 == "http://www.w3.org/2001/XMLSchema#decimal" && value1 != null){
+                        if(value1.includes(".")){
+                            while(value1.endsWith("0")){
+                                value1 = value1.substring(0, value1.length - 1);
+                            }
+                        }
+                        if(value1.endsWith(".")) {
+                            value1 = value1.replace(".", "");
+                        }
+
                     }
                     if ($.inArray(value1, updateValues) != -1) {
                         var success = true;
