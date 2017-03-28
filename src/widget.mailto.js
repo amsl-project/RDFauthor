@@ -75,6 +75,9 @@ RDFauthor.registerWidget({
                 && this.statement.objectValue() !== this.value()
             );
 
+            //bad workaround, but done everywhere else, so i might as well
+            hasChanged = true;
+            
             if (hasChanged || this.removeOnSubmit) {
                 var rdfqTriple = this.statement.asRdfQueryTriple();
                 if (rdfqTriple) {
