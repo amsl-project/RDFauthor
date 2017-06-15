@@ -52,7 +52,7 @@ RDFauthor.registerWidget({
             local:              false,  /* Local property cache */
             sparql:             true,   /* use SPARQL endpoint */
             //sindice:           true,   /* use Sindice semantic search */
-            uri:                true,   /* provide generated URI */
+            uri:                false,   /* provide generated URI */
             // Filter options:
             filterRange:        true,   /* show only resources in the rdfs:range of the statement's property */
             filterDomain:       false,  /* show only properties whose domain matches the statement's subject */
