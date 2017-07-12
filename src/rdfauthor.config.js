@@ -122,7 +122,8 @@ var __config = {
                 values: ['http://xmlns.com/foaf/0.1/mbox', 
                          'http://rdfs.org/sioc/ns#email', 
                          'http://www.w3.org/2006/vcard/ns#hasEmail', 
-                         'http://usefulinc.com/ns/doap#mailing-list']
+                         'http://usefulinc.com/ns/doap#mailing-list',
+                         'http://vocab.ub.uni-leipzig.de/sushi/requestorMail']
             }
         },
         /*---------------------------------- tel --------------------------------------*/
