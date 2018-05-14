@@ -136,7 +136,8 @@ InlineController.prototype = {
                     if (widget.statement._object !=  null && typeof widget.statement._object.datatype != 'undefined'){
                         var datatype1 = widget.statement._object.datatype._string;
                     }else{
-                        if(typeof RDFAUTHOR_DATATYPES_FIX_ADDITIONAL_DATA[widget.statement._predicate.value._string] != "undefined") {
+                        if(typeof RDFAUTHOR_DATATYPES_FIX_ADDITIONAL_DATA != "undefined" &&
+                        	typeof RDFAUTHOR_DATATYPES_FIX_ADDITIONAL_DATA[widget.statement._predicate.value._string] != "undefined") {
                             var datatype1 = RDFAUTHOR_DATATYPES_FIX_ADDITIONAL_DATA[widget.statement._predicate.value._string][0]['range'][0]
                         }else{
                             var datatype1 = "undefined";
